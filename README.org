@@ -1,0 +1,44 @@
+* Corrator
+Keep tabs on the corrosion in your docker containers.
+
+** What is it?
+Corrator is a command line tool for querying docker containers and requesting version numbers for
+apps in them.
+
+** Why would I want that?
+If you have to maintain lots of containers, each with their own set of applications and
+dependencies, you may be familiar with how difficult it can be to maintain currency. You don't want
+to let your dependencies go out of their support life-cycles, but you also don't want to have to
+update a master list somewhere any time you push an update.
+
+Corrator lets you define a set of containers, each with a list of important dependencies. Running
+corrator will pull down the container, bash into it, and run a version command on each one. Then it
+spits out what it finds in minimal form.
+
+For dependencies which happen to be tracked by the excellent endoflife.date service you can
+optionally ask corrator to look up the current end of life date /for the version currently
+installed/ and tell you that too.
+
+** Configuring Corrator
+The heart of corrator is a simple `toml` file with the following schema:
+
+#+begin_src toml
+  [[applications]]
+  name = "bash"
+  version_regex = '''GNU bash, version (?P<version>[0-9.]+)'''
+  version_command = "bash --version"
+  eol_api_supported = false
+
+  [[containers]]
+  name = "ubuntu"
+  path = "ubuntu"
+  apps = [ "bash" ]
+#+end_src
+
+Corrator will look for this file in the following locations, in order:
+
+1. =~/.corrator.toml=
+2. Using the environment variable =CORRATOR_CONFIG_PATH=
+3. Using the flag =-c path_to_toml=
+
+There is also an example file in this repository to get you started.
