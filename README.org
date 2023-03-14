@@ -23,14 +23,12 @@ installed/ and tell you that too.
 The heart of corrator is a simple `toml` file with the following schema:
 
 #+begin_src toml
-  [[applications]]
-  name = "bash"
+  [applications.bash]
   version_regex = '''GNU bash, version (?P<version>[0-9.]+)'''
   version_command = "bash --version"
   eol_api_supported = false
 
-  [[containers]]
-  name = "ubuntu"
+  [containers.ubuntu]
   path = "ubuntu"
   apps = [ "bash" ]
 #+end_src

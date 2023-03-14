@@ -1,22 +1,18 @@
-[[applications]]
-name = "bash"
+[applications.bash]
 version_regex = '''GNU bash, version (?P<version>[0-9.]+)'''
 version_command = "bash --version"
 eol_api_supported = false
 
-[[applications]]
-name = "grep"
+[applications.grep]
 version_regex = '''grep \(GNU grep\) (?P<version>[0-9.]+)'''
 version_command = "grep --version"
 eol_api_supported = false
 
-[[applications]]
-name = "ubuntu"
+[applications.ubuntu]
 version_regex = '''PRETTY_NAME="Ubuntu (?P<version>[0-9.]{5}).*"'''
 version_command = "cat /etc/os-release"
 eol_api_supported = true
 
-[[containers]]
-name = "ubuntu"
+[containers.ubuntu]
 path = "ubuntu"
 apps = [ "bash", "grep", "ubuntu"]

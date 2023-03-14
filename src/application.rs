@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Application {
-    pub name: String,
     #[serde(with = "serde_regex")]
     pub version_regex: Regex,
     pub version_command: String,
@@ -31,7 +30,6 @@ mod tests {
     #[test]
     fn valid_query_returns_version() {
         let app = Application {
-            name: String::from("test"),
             version_regex: Regex::new(r"test: (?P<version>[0-9.]+)").unwrap(),
             version_command: String::from(""),
             eol_api_supported: false,
