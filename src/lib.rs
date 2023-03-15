@@ -1,8 +1,8 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::error::Error;
 use std::fs;
 use std::process::{self, Command};
-use std::collections::HashMap;
 
 mod application;
 mod container;
@@ -10,8 +10,8 @@ mod end_of_life;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
-    pub containers: HashMap<String, container::Container>,
-    pub applications: HashMap<String, application::Application>,
+    pub containers: BTreeMap<String, container::Container>,
+    pub applications: BTreeMap<String, application::Application>,
 }
 
 impl Config {
@@ -24,9 +24,12 @@ impl Config {
 
     pub fn run(&self) {
         for (name, container) in self.containers.iter() {
-            println!("\n--- Container: {name} ---------");
+            println!("\n---Container: {name:-<35}");
 
-            for app_name in container.apps.iter() {
+            let mut apps = container.apps.clone();
+            apps.sort();
+
+            for app_name in apps.iter() {
                 let app = self.get_application(String::from(app_name));
                 let output = Command::new("docker")
                     .arg("run")
@@ -39,18 +42,22 @@ impl Config {
                         process::exit(1);
                     });
 
-                let version = app.query_version(&String::from_utf8(output.stdout).unwrap()).unwrap();
+                let version = app
+                    .query_version(&String::from_utf8(output.stdout).unwrap())
+                    .unwrap();
 
-                let eol_status: String =
-                    match &app.eol {
-                        Some(x) => {
-                            let version = x.version_regex.find(&version).unwrap().as_str();
-                            format!("(eol: {})", end_of_life::query(app_name, version).unwrap().eol)
-                        },
-                        _ => String::from(""),
-                    };
+                let eol_status: String = match &app.eol {
+                    Some(x) => {
+                        let version = x.version_regex.find(&version).unwrap().as_str();
+                        format!(
+                            "(eol: {})",
+                            end_of_life::query(app_name, version).unwrap().eol
+                        )
+                    }
+                    _ => String::from(""),
+                };
 
-                println!("{app_name}, {version} {eol_status}");
+                println!("\t{app_name: <15}{version: <10} {eol_status}");
             }
         }
     }
@@ -70,6 +77,9 @@ mod tests {
 
         println!("{:?}", config);
 
-        assert_eq!(config.get_application(String::from("bash")).version_command, "bash --version");
+        assert_eq!(
+            config.get_application(String::from("bash")).version_command,
+            "bash --version"
+        );
     }
 }
