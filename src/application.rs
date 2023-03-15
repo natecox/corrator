@@ -3,12 +3,15 @@ use std::error::Error;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
+use crate::end_of_life;
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Application {
     #[serde(with = "serde_regex")]
     pub version_regex: Regex,
     pub version_command: String,
-    pub eol_api_supported: bool,
+    pub eol: Option<end_of_life::EolConfig>,
+
 }
 
 impl Application {
@@ -32,7 +35,7 @@ mod tests {
         let app = Application {
             version_regex: Regex::new(r"test: (?P<version>[0-9.]+)").unwrap(),
             version_command: String::from(""),
-            eol_api_supported: false,
+            eol: None,
         };
 
         assert_eq!(String::from("1.2.3"), app.query_version("test: 1.2.3").unwrap());

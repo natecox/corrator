@@ -24,7 +24,7 @@ impl Config {
 
     pub fn run(&self) {
         for (name, container) in self.containers.iter() {
-            println!("\n-- Container: {} --------", name);
+            println!("\n--- Container: {name} ---------");
 
             for app_name in container.apps.iter() {
                 let app = self.get_application(String::from(app_name));
@@ -41,16 +41,16 @@ impl Config {
 
                 let version = app.query_version(&String::from_utf8(output.stdout).unwrap()).unwrap();
 
-                let eol_status = if app.eol_api_supported {
-                    match end_of_life::query(&app_name, &version) {
-                        Ok(x) => format!("(eol: {})", x.eol),
-                        Err(e) => panic!("Unable to query endoflife.date: {e}"),
-                    }
-                } else {
-                    String::from("")
-                };
+                let eol_status: String =
+                    match &app.eol {
+                        Some(x) => {
+                            let version = x.version_regex.find(&version).unwrap().as_str();
+                            format!("(eol: {})", end_of_life::query(app_name, version).unwrap().eol)
+                        },
+                        _ => String::from(""),
+                    };
 
-                println!("{}, {} {}", app_name, version, eol_status);
+                println!("{app_name}, {version} {eol_status}");
             }
         }
     }
@@ -70,6 +70,6 @@ mod tests {
 
         println!("{:?}", config);
 
-        assert_eq!(config.get_application(String::from("bash")).name, "bash");
+        assert_eq!(config.get_application(String::from("bash")).version_command, "bash --version");
     }
 }

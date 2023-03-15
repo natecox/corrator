@@ -24,13 +24,28 @@ The heart of corrator is a simple `toml` file with the following schema:
 
 #+begin_src toml
   [applications.bash]
-  version_regex = '''GNU bash, version (?P<version>[0-9.]+)'''
+  # The actual command to run to get a version
   version_command = "bash --version"
-  eol_api_supported = false
+
+  # Command's version format as a regex
+  #   "version" named group is mandatory
+  version_regex = '''GNU bash, version (?P<version>[0-9.]+)'''
+
+  # Optional for endoflife.date support
+  eol = {
+      # regex for which parts of version endofdate is looking for
+      #   e.g., Rails only wants version in X.X format
+      version_regex = '''.+'''
+  }
 
   [containers.ubuntu]
+  # The docker registry full path
   path = "ubuntu"
+
+  # An array of applications to be queried
+  #   These must be defined in this file
   apps = [ "bash" ]
+
 #+end_src
 
 Corrator will look for this file in the following locations, in order:
