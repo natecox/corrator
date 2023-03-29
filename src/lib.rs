@@ -3,10 +3,10 @@ use std::collections::BTreeMap;
 use std::error::Error;
 use std::fs;
 
-mod application;
-mod container;
-mod docker;
-mod end_of_life;
+pub mod application;
+pub mod container;
+pub mod docker;
+pub mod end_of_life;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
