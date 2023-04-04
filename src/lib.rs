@@ -29,9 +29,11 @@ pub fn run(config: Config) {
         let mut apps = container.apps.clone();
         apps.sort();
 
+        docker::run(name, &container.path).expect("Unable to start docker container");
+
         for app_name in apps.iter() {
             let app = config.applications.get(app_name).unwrap();
-            let output = docker::execute(&container.path, &app.version_command);
+            let output = docker::execute(name, &app.version_command);
             let version = app.query_version(&output).unwrap();
 
             let eol_status: String = match &app.eol {
@@ -48,6 +50,8 @@ pub fn run(config: Config) {
                 eol_status: Some(eol_status),
             });
         }
+
+        docker::stop(name).expect("Unable to clean up docker container");
 
         println!("{}", String::from(container_status));
     }
