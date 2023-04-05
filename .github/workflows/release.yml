@@ -1,39 +1,27 @@
-name: Release
-
-on: [ push ]
+on:
+  release:
+    types: [created]
 
 jobs:
-  build_release:
-    name: Build ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-
+  release:
+    name: release ${{ matrix.target }}
+    runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - os: macos-latest
-            toolchain: stable
-            cross: false
-            artifact_path: target/release/corrator
-            artifact_name: corrator-macos
-          - os: ubuntu-latest
-            toolchain: stable
-            cross: false
-            artifact_path: target/release/corrator
-            artifact_name: corrator-linux
-
+          - target: x86_64-pc-windows-gnu
+            archive: zip
+          - target: x86_64-unknown-linux-musl
+            archive: tar.gz tar.xz tar.zst
+          - target: x86_64-apple-darwin
+            archive: zip
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@master
+      - name: Compile and release
+        uses: rust-build/rust-build.action@v1.4.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          toolchain: ${{ matrix.toolchain }}
-          target: ${{ matrix.target }}
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          use-cross: ${{ matrix.cross }}
-          command: build
-          args: --release --locked
-      - uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.artifact_path }}
+          RUSTTARGET: ${{ matrix.target }}
+          ARCHIVE_TYPES: ${{ matrix.archive }}
