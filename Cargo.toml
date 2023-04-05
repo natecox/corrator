@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 description = "A tool to verify the versions of apps used inside docker containers."
 license-file = "LICENSE"
+homepage = "https://github.com/natecox/corrator"
+repository = "https://github.com/natecox/corrator"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
