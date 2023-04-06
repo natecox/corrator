@@ -9,6 +9,9 @@ use std::{env, process};
 struct Args {
     #[arg(short, long, default_value_t = default_config_path())]
     config_path: String,
+
+    #[arg(short, long, default_value = "text", value_parser = ["text", "x"])]
+    format: String,
 }
 
 fn default_config_path() -> String {
@@ -31,5 +34,16 @@ fn main() {
         process::exit(1);
     });
 
-    corrator::run(config);
+    if let Ok(data) = corrator::run(config) {
+        match args.format.as_str() {
+            "text" => output_as_text(data),
+            _ => println!("unknown format"),
+        }
+    }
+}
+
+fn output_as_text(data: Vec<corrator::container::Status>) {
+    for x in data {
+        println!("{}", String::from(x));
+    }
 }

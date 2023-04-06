@@ -23,7 +23,9 @@ impl Config {
     }
 }
 
-pub fn run(config: Config) {
+pub fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
+    let mut data = vec![];
+
     for (name, container) in config.containers.iter() {
         let mut container_status = container::Status::new(name.to_string());
         let mut apps = container.apps.clone();
@@ -53,8 +55,10 @@ pub fn run(config: Config) {
 
         docker::stop(name).expect("Unable to clean up docker container");
 
-        println!("{}", String::from(container_status));
+        data.push(container_status);
     }
+
+    Ok(data)
 }
 
 #[cfg(test)]
