@@ -6,6 +6,7 @@ pub struct Container {
     pub apps: Vec<String>,
 }
 
+#[derive(Debug)]
 pub struct Status {
     pub name: String,
     pub apps: Vec<crate::application::Status>,

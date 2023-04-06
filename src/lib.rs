@@ -77,7 +77,9 @@ pub fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
         h.join().unwrap();
     }
 
-    Ok(*data.lock().unwrap())
+    let data = Arc::try_unwrap(data);
+
+    Ok(data.unwrap().into_inner().unwrap())
 }
 
 #[cfg(test)]
