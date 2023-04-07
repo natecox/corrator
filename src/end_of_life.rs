@@ -2,7 +2,7 @@ use chrono::NaiveDate;
 use regex::Regex;
 use reqwest::Error;
 use serde::{Deserialize, Serialize};
-use std::convert::From;
+use std::{convert::From, process};
 
 pub mod cache;
 
@@ -24,7 +24,17 @@ impl EolConfig {
                 "https://endoflife.date/api/{}/{}.json",
                 &self.product_name, &version
             );
-            let response = reqwest::blocking::get(request_url)?.json::<Cycle>()?;
+
+            let response = reqwest::blocking::get(&request_url)?;
+            if response.status() != 200 {
+                eprintln!("Unable to query {request_url}");
+                eprintln!("-- hint: You may want to check the version number with endoflife.date.");
+                eprintln!("         If your url has extra digits at the end you may need to add");
+                eprintln!("         a version_regex to the application's eol config.");
+                process::exit(1);
+            }
+
+            let response = response.json::<Cycle>()?;
 
             // Don't cache responses where an end of life date hasn't yet been set
             match response.eol {
