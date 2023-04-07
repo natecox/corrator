@@ -50,23 +50,23 @@ The heart of corrator is a simple `toml` file with the following schema:
 
 ```toml
 [applications.bash]
-# The actual command to run to get a version
-version_command = "bash --version"
+  # The actual command to run to get a version
+  version_command = "bash --version"
 
-# Command's version format as a regex
-#   "version" named group is mandatory
-version_regex = '''GNU bash, version (?P<version>[0-9.]+)'''
+  # Command's version format as a regex
+  #   "version" named group is mandatory
+  version_regex = '''GNU bash, version (?P<version>[0-9.]+)'''
 
-# Optional for endoflife.date support
-eol = {
-    # The "product name" as it exists in endoflife.date
-    # yes, I'm aware bash isn't actually on endoflife.date
-    product_name = "bash"
+  # Optional for endoflife.date support
+  [eol]
+  # The "product name" as it exists in endoflife.date
+  # yes, I'm aware bash isn't actually on endoflife.date
+  product_name = "bash"
 
-    # regex for which parts of version endofdate is looking for
-    #   e.g., Rails only wants version in X.X format
-    version_regex = '''.+'''
-}
+  # regex for which parts of version endofdate is looking for
+  #   e.g., Rails only wants version in X.X format
+  version_regex = '''.+'''
+
 
 [containers.ubuntu]
 # The docker registry full path
