@@ -1,18 +1,17 @@
 [applications.bash]
-version_regex = '''GNU bash, version (?P<version>[0-9.]+)'''
-version_command = "bash --version"
-eol_api_supported = false
+  version_command = "bash --version"
+  version_regex = '''GNU bash, version (?P<version>[0-9.]+)'''
 
-[applications.grep]
-version_regex = '''grep \(GNU grep\) (?P<version>[0-9.]+)'''
-version_command = "grep --version"
-eol_api_supported = false
+[applications.ruby]
+  version_command = "ruby --version"
+  version_regex = '''ruby (?P<version>[0-9.]+)'''
 
-[applications.ubuntu]
-version_regex = '''PRETTY_NAME="Ubuntu (?P<version>[0-9.]{5}).*"'''
-version_command = "cat /etc/os-release"
-eol_api_supported = true
+  eol = { product_name = "ruby", version_regex = '''.{3}''' }
 
 [containers.ubuntu]
 path = "ubuntu"
-apps = [ "bash", "grep", "ubuntu"]
+apps = [ "bash" ]
+
+[containers.rubylang]
+path = "rubylang/ruby"
+apps = [ "bash", "ruby" ]
