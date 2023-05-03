@@ -3,6 +3,8 @@
 
 Keep tabs on the corrosion in your docker containers.
 
+> **Warning**
+> This project is a work in progess. Until a 1.0.0 release it is safe to assume updates will include breaking functionality!
 
 ## What is it?
 
