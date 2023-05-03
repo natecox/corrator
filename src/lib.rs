@@ -1,7 +1,8 @@
-use serde::{Deserialize, Serialize};
+use serde::{Serialize, Deserialize};
 use std::error::Error;
 use std::fs;
 use std::process::{self, Command};
+use std::collections::HashMap;
 
 mod application;
 mod container;
@@ -9,8 +10,8 @@ mod end_of_life;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
-    pub containers: Vec<crate::container::Container>,
-    pub applications: Vec<crate::application::Application>,
+    pub containers: HashMap<String, container::Container>,
+    pub applications: HashMap<String, application::Application>,
 }
 
 impl Config {
@@ -22,11 +23,11 @@ impl Config {
     }
 
     pub fn run(&self) {
-        for container in self.containers.iter() {
-            println!("\n-- Container: {} --------", container.name);
+        for (name, container) in self.containers.iter() {
+            println!("\n-- Container: {} --------", name);
 
-            for app in container.apps.iter() {
-                let app = self.get_application(String::from(app));
+            for app_name in container.apps.iter() {
+                let app = self.get_application(String::from(app_name));
                 let output = Command::new("docker")
                     .arg("run")
                     .args(["--entrypoint", "", "--pull", "always"])
@@ -41,7 +42,7 @@ impl Config {
                 let version = app.query_version(&String::from_utf8(output.stdout).unwrap()).unwrap();
 
                 let eol_status = if app.eol_api_supported {
-                    match end_of_life::query(&app.name, &version) {
+                    match end_of_life::query(&app_name, &version) {
                         Ok(x) => format!("(eol: {})", x.eol),
                         Err(e) => panic!("Unable to query endoflife.date: {e}"),
                     }
@@ -49,16 +50,13 @@ impl Config {
                     String::from("")
                 };
 
-                println!("{}, {} {}", app.name, version, eol_status);
+                println!("{}, {} {}", app_name, version, eol_status);
             }
         }
     }
 
     fn get_application(&self, name: String) -> &application::Application {
-        self.applications
-            .iter()
-            .find(|x| x.name == name)
-            .expect("Could not find application with name")
+        self.applications.get(&name).unwrap()
     }
 }
 
@@ -69,6 +67,8 @@ mod tests {
     #[test]
     fn gets_application_by_name() {
         let config = Config::new(&String::from("corrator.toml")).unwrap();
+
+        println!("{:?}", config);
 
         assert_eq!(config.get_application(String::from("bash")).name, "bash");
     }
