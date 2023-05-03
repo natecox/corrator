@@ -11,7 +11,6 @@ pub struct Application {
     pub version_regex: Regex,
     pub version_command: String,
     pub eol: Option<end_of_life::EolConfig>,
-
 }
 
 impl Application {
@@ -38,6 +37,9 @@ mod tests {
             eol: None,
         };
 
-        assert_eq!(String::from("1.2.3"), app.query_version("test: 1.2.3").unwrap());
+        assert_eq!(
+            String::from("1.2.3"),
+            app.query_version("test: 1.2.3").unwrap()
+        );
     }
 }

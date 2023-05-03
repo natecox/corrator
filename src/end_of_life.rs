@@ -1,12 +1,12 @@
 use chrono::NaiveDate;
 use regex::Regex;
 use reqwest::Error;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EolConfig {
-    #[serde(with="serde_regex")]
+    #[serde(with = "serde_regex")]
     pub version_regex: Regex,
 }
 
