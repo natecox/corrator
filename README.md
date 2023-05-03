@@ -18,6 +18,31 @@ Corrator lets you define a set of containers, each with a list of important depe
 
 For dependencies which happen to be tracked by the excellent endoflife.date service you can optionally ask corrator to look up the current end of life date *for the version currently installed* and tell you that too.
 
+## Installing Corrator
+
+### From Crates.io
+
+#### Install Rust
+
+See the [rust docs](https://doc.rust-lang.org/stable/book/ch01-01-installation.html) for this.
+
+#### Install Corrator
+
+You can install corrator straight from crates.io with the following:
+
+```sh
+cargo install corrator
+```
+
+## Using Corrator
+
+Assuming you have a valid config file (see below), you can simply run `corrator` from the command line.
+
+```sh
+corrator
+```
+
+For additional options, see `corrator --help`.
 
 ## Configuring Corrator
 
