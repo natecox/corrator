@@ -79,7 +79,7 @@ apps = [ "bash" ]
 
 Corrator will look for this file in the following locations, in order:
 
-1.  `~/.corrator.toml`
+1.  Your system's user config location (see `corrator --help` to find this path)
 2.  Using the environment variable `CORRATOR_CONFIG_PATH`
 3.  Using the flag `-c path_to_toml`
 
