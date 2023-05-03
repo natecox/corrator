@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::end_of_life;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct Application {
     #[serde(with = "serde_regex")]
     pub version_regex: Regex,
