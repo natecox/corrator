@@ -65,7 +65,9 @@ pub fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
         }
     });
 
-    Ok(data.into_inner().unwrap())
+    let mut data = data.into_inner().unwrap();
+    data.sort_by_key(|x| x.name.clone());
+    Ok(data)
 }
 
 #[cfg(test)]
