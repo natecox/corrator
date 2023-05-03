@@ -4,6 +4,8 @@ use reqwest::Error;
 use serde::{Deserialize, Serialize};
 use std::convert::From;
 
+pub mod cache;
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EolConfig {
     pub product_name: String,
@@ -14,17 +16,29 @@ pub struct EolConfig {
 impl EolConfig {
     pub fn query(&self, input: &str) -> Result<Cycle, Error> {
         let version = self.version_regex.find(input).unwrap().as_str();
-        let request_url = format!(
-            "https://endoflife.date/api/{}/{}.json",
-            &self.product_name, &version
-        );
-        let response = reqwest::blocking::get(request_url)?.json::<Cycle>()?;
 
-        Ok(response)
+        if let Some(x) = cache::get_cycle(&self.product_name, version).unwrap() {
+            Ok(x)
+        } else {
+            let request_url = format!(
+                "https://endoflife.date/api/{}/{}.json",
+                &self.product_name, &version
+            );
+            let response = reqwest::blocking::get(request_url)?.json::<Cycle>()?;
+
+            // Don't cache responses where an end of life date hasn't yet been set
+            match response.eol {
+                EOLDate::String(_) => {
+                    Ok(cache::insert_cycle(&self.product_name, version, response)
+                        .expect("failed to insert cached cycle"))
+                }
+                EOLDate::Boolean(_) => Ok(response),
+            }
+        }
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Cycle {
     pub eol: EOLDate,
@@ -32,6 +46,7 @@ pub struct Cycle {
     pub latest: String,
     pub latest_release_date: String,
     pub release_date: String,
+    pub lts: bool,
 }
 
 impl From<Cycle> for String {
@@ -40,11 +55,17 @@ impl From<Cycle> for String {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
 pub enum EOLDate {
     String(String),
     Boolean(bool),
+}
+
+impl Default for EOLDate {
+    fn default() -> Self {
+        Self::Boolean(false)
+    }
 }
 
 impl From<EOLDate> for String {
