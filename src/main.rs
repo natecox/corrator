@@ -17,6 +17,7 @@ fn main() {
         Ok(x) => x,
         _ => args.config_path,
     };
+    let file_path = shellexpand::tilde(&file_path).to_string();
 
     let config = Config::new(&file_path).unwrap_or_else(|err| {
         eprintln!("unable to parse config file: {err}");
