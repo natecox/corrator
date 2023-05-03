@@ -2,10 +2,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::fs;
-use std::process::{self, Command};
 
 mod application;
 mod container;
+mod docker;
 mod end_of_life;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -21,49 +21,35 @@ impl Config {
 
         Ok(results)
     }
+}
 
-    pub fn run(&self) {
-        for (name, container) in self.containers.iter() {
-            println!("\n---Container: {name:-<35}");
+pub fn run(config: Config) {
+    for (name, container) in config.containers.iter() {
+        let mut container_status = container::Status::new(name.to_string());
+        let mut apps = container.apps.clone();
+        apps.sort();
 
-            let mut apps = container.apps.clone();
-            apps.sort();
+        for app_name in apps.iter() {
+            let app = config.applications.get(app_name).unwrap();
+            let output = docker::execute(&container.path, &app.version_command);
+            let version = app.query_version(&output).unwrap();
 
-            for app_name in apps.iter() {
-                let app = self.get_application(String::from(app_name));
-                let output = Command::new("docker")
-                    .arg("run")
-                    .args(["--entrypoint", "", "--pull", "always"])
-                    .arg(&container.path)
-                    .args(app.version_command.split(' '))
-                    .output()
-                    .unwrap_or_else(|err| {
-                        eprintln!("Unable to run docker command: {err}");
-                        process::exit(1);
-                    });
+            let eol_status: String = match &app.eol {
+                Some(x) => {
+                    let status: String = x.query(&version).unwrap().into();
+                    format!("(eol: {status})")
+                }
+                _ => String::from(""),
+            };
 
-                let version = app
-                    .query_version(&String::from_utf8(output.stdout).unwrap())
-                    .unwrap();
-
-                let eol_status: String = match &app.eol {
-                    Some(x) => {
-                        let version = x.version_regex.find(&version).unwrap().as_str();
-                        format!(
-                            "(eol: {})",
-                            end_of_life::query(app_name, version).unwrap().eol
-                        )
-                    }
-                    _ => String::from(""),
-                };
-
-                println!("\t{app_name: <15}{version: <10} {eol_status}");
-            }
+            container_status.apps.push(application::Status {
+                name: app_name.to_string(),
+                version,
+                eol_status: Some(eol_status),
+            });
         }
-    }
 
-    fn get_application(&self, name: String) -> &application::Application {
-        self.applications.get(&name).unwrap()
+        println!("{}", String::from(container_status));
     }
 }
 
@@ -75,10 +61,8 @@ mod tests {
     fn gets_application_by_name() {
         let config = Config::new(&String::from("corrator.toml")).unwrap();
 
-        println!("{:?}", config);
-
         assert_eq!(
-            config.get_application(String::from("bash")).version_command,
+            config.applications.get("bash").unwrap().version_command,
             "bash --version"
         );
     }

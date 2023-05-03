@@ -25,6 +25,12 @@ impl Application {
     }
 }
 
+pub struct Status {
+    pub name: String,
+    pub version: String,
+    pub eol_status: Option<String>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

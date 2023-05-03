@@ -33,6 +33,10 @@ The heart of corrator is a simple `toml` file with the following schema:
 
   # Optional for endoflife.date support
   eol = {
+      # The "product name" as it exists in endoflife.date
+      # yes, I'm aware bash isn't actually on endoflife.date
+      product_name = "bash"
+
       # regex for which parts of version endofdate is looking for
       #   e.g., Rails only wants version in X.X format
       version_regex = '''.+'''

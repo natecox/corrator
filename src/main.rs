@@ -24,5 +24,5 @@ fn main() {
         process::exit(1);
     });
 
-    config.run();
+    corrator::run(config);
 }
