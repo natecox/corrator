@@ -2,6 +2,8 @@
 name = "corrator"
 version = "0.1.0"
 edition = "2021"
+description = "A tool to verify the versions of apps used inside docker containers."
+license-file = "LICENSE"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -9,7 +11,6 @@ edition = "2021"
 bonsaidb = { version = "0.4.1", features = ["local"] }
 chrono = "0.4.23"
 clap = { version = "4.1.8", features = ["derive"] }
-double = "0.2.4"
 regex = "1.7.1"
 reqwest = { version = "0.11.14", features = ["blocking", "json"] }
 serde = { version = "1.0.154", features = ["derive"] }
