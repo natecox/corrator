@@ -25,7 +25,7 @@ impl Application {
 	}
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Debug)]
 pub struct Status {
 	pub name: String,
 	pub version: String,

@@ -6,6 +6,7 @@ pub struct Container {
 	pub apps: Vec<String>,
 }
 
+#[derive(Serialize)]
 pub struct Status {
 	pub name: String,
 	pub apps: Vec<crate::application::Status>,
@@ -14,6 +15,10 @@ pub struct Status {
 impl Status {
 	pub fn new(name: String) -> Self {
 		Self { name, apps: vec![] }
+	}
+
+	pub fn to_json(&self) -> String {
+		serde_json::to_string(&self).unwrap()
 	}
 }
 
