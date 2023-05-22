@@ -52,14 +52,14 @@ impl From<Status> for String {
 	/// A human readable representation of a container's currency
 	///
 	/// Includes version and end-of-life details for each configured
-	///	app inside a container.
+	/// app inside a container.
 	///
 	/// # Example
 	///
 	/// ---Container: ubuntu-----------------------------
-	///		bash           5.1.16     
-	///		grep           3.7        
-	///		ubuntu         22.04      
+	///     bash           5.1.16     
+	///     grep           3.7        
+	///     ubuntu         22.04      
 
 	fn from(value: Status) -> Self {
 		let mut output = vec![];
