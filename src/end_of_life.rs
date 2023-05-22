@@ -6,6 +6,7 @@ use std::{convert::From, process};
 
 pub mod cache;
 
+/// Configuation details for an endoflife.date cycle
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EolConfig {
 	pub product_name: String,
@@ -14,6 +15,10 @@ pub struct EolConfig {
 }
 
 impl EolConfig {
+	/// Fetch EOL data for an application version from endoflife.dat
+	///
+	/// First looks to see if this application/version combo has been previously
+	/// cached and avoids the network call if possible.
 	pub fn query(&self, input: &str) -> Result<Cycle, Error> {
 		let version = self.version_regex.find(input).unwrap().as_str();
 
@@ -48,6 +53,7 @@ impl EolConfig {
 	}
 }
 
+/// Representation of an endoflife.date cycle object returned by their API
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Cycle {
@@ -65,6 +71,7 @@ impl From<Cycle> for String {
 	}
 }
 
+/// Fix for `false` returned by endoflife.date rather than null
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
 pub enum EOLDate {
@@ -79,6 +86,10 @@ impl Default for EOLDate {
 }
 
 impl From<EOLDate> for String {
+	/// Sanitize endoflife.date output to either a date or "alive"
+	///
+	/// A value of "alive" represents that no EOL date has yet been set for the
+	/// requested version.
 	fn from(value: EOLDate) -> Self {
 		match value {
 			EOLDate::String(x) => NaiveDate::parse_from_str(&x, "%Y-%m-%d")
