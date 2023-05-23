@@ -40,21 +40,33 @@ pub fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
 				for app_name in container.apps {
 					let app = &config.applications[&app_name];
 					let output = docker::execute(&name, &app.version_command);
-					let version = app.query_version(&output).unwrap();
 
-					let eol_status: Option<String> = match &app.eol {
-						Some(x) => {
-							let status: String = x.query(&version).unwrap().into();
-							Some(status)
+					match app.query_version(&output) {
+						Ok(version) => {
+							let eol_status: Option<String> = match &app.eol {
+								Some(x) => {
+									let status: String = x.query(&version).unwrap().into();
+									Some(status)
+								}
+								_ => None,
+							};
+
+							container_status.apps.push(application::Status {
+								name: app_name,
+								version,
+								eol_status,
+							});
 						}
-						_ => None,
-					};
-
-					container_status.apps.push(application::Status {
-						name: app_name,
-						version,
-						eol_status,
-					});
+						_ => {
+							eprintln!("Error querying app version for {} on {}", &app_name, &name);
+							eprintln!("-- hint: Your version command was: {}", app.version_command);
+							eprintln!(
+								"         Your regex query was: {}",
+								app.version_regex.as_str()
+							);
+							eprintln!("         Your regex input was: {output}");
+						}
+					}
 				}
 
 				docker::stop(&name).expect("Unable to clean up docker container");

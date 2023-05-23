@@ -1,0 +1,147 @@
+[applications.ruby]
+version_regex = "ruby (?P<version>[0-9.]+).*"
+version_command = "ruby --version"
+eol = { product_name = "ruby", version_regex = '''.{3}''' }
+
+[applications.rails]
+version_regex = '''Rails (?P<version>[0-9.]+)'''
+version_command = "rails --version"
+eol = { product_name = "rails", version_regex = '''.{3}''' }
+
+[applications.nokogiri]
+version_regex = '''\# Nokogiri \((?P<version>[0-9.]+)\)'''
+version_command = "nokogiri --version"
+
+[applications.sidekiq]
+version_regex = '''Sidekiq (?P<version>[0-9.]+)'''
+version_command = "sidekiq --version"
+
+[applications.azure-storage]
+version_regex = '''azure-storage-common \((?P<version>[0-9.]+)\)'''
+version_command = "bundle info azure-storage-common"
+
+[applications.flipper]
+version_regex = '''flipper \((?P<version>[0-9.]+)\)'''
+version_command = "bundle info flipper"
+
+[applications.redis]
+version_regex = '''redis \((?P<version>[0-9.]+)\)'''
+version_command = "bundle info redis"
+
+[applications.elixir]
+version_regex = '''Elixir (?P<version>[0-9.]+)'''
+version_command = "elixir --version"
+eol = { product_name = "elixir", version_regex = '''^[0-9]+\.[0-9]+''' }
+
+[applications.postgres]
+version_regex = ''' PostgreSQL \((?P<version>[0-9.]+)\)'''
+version_command = "psql -V"
+eol = { product_name = "postgres", version_regex = '''^[0-9]+\.[0-9]+''' }
+
+[containers.alchemist]
+path = "registry.cmmint.net/payer/alchemist"
+apps = [ "ruby", "rails", "nokogiri", "sidekiq" ]
+
+[containers.central]
+path = "registry.cmmint.net/payer/central"
+apps = [ "ruby", "rails", "nokogiri", "sidekiq", "azure-storage" ]
+
+[containers.criteria]
+path = "registry.cmmint.net/payer/criteria"
+apps = [ "ruby", "rails", "nokogiri", "azure-storage" ]
+
+[containers.epa-admin]
+path = "registry.cmmint.net/payer/epa-admin"
+apps = [ "ruby", "rails", "sidekiq", "flipper", "redis" ]
+
+[containers.epa_gateway]
+path = "registry.cmmint.net/payer/epa_gateway"
+apps = [ "ruby", "rails", "nokogiri", "sidekiq" ]
+
+[containers.epamotron]
+path = "registry.cmmint.net/payer/epamotron"
+apps = [ "ruby", "rails", "nokogiri", "sidekiq" ]
+
+[containers.expdfme]
+path = "registry.cmmint.net/payer/expdfme"
+apps = [ "elixir" ]
+
+[containers.fake-plan-payer]
+path = "registry.cmmint.net/payer/fake-plan-payer"
+apps = [ "ruby", "rails", "nokogiri", "sidekiq" ]
+
+[containers.pa-starter]
+path = "registry.cmmint.net/payer/pa-starter"
+apps = [ "ruby", "rails", "nokogiri" ]
+
+[containers.pbmproxy]
+path = "registry.cmmint.net/payer/pbmproxy"
+apps = [ "ruby", "rails", "nokogiri", "sidekiq", "azure-storage" ]
+
+[containers.pdfmotron]
+path = "registry.cmmint.net/payer/pdfmotron"
+apps = [ "ruby", "rails", "nokogiri" ]
+
+[containers.rambo]
+path = "registry.cmmint.net/payer/rambo"
+apps = [ "ruby", "rails" ]
+
+[containers.renewals-api]
+path = "registry.cmmint.net/payer/renewals-api"
+apps = [ "ruby", "rails", "nokogiri", "sidekiq", "azure-storage" ]
+
+[containers.request-keys]
+path = "registry.cmmint.net/payer/request-keys"
+apps = [ "ruby", "rails", "nokogiri" ]
+
+[containers.request-updater]
+path = "registry.cmmint.net/payer/request-updater"
+apps = [ "ruby", "rails", "nokogiri", "sidekiq", "azure-storage" ]
+
+[containers.account]
+path = "registry.cmmint.net/cmm/account"
+apps = [ "ruby", "rails", "flipper", "redis" ]
+
+[containers.hubservices]
+path = "registry.cmmint.net/cmm/hubservices"
+apps = [ "ruby", "rails", "flipper", "redis", "azure-storage" ]
+
+[containers.casemanager]
+path = "registry.cmmint.net/cmm/casemanager"
+apps = [ "ruby", "rails", "flipper", "redis" ]
+
+[containers.pdfs-api]
+path = "registry.cmmint.net/cmm/pdfs-api"
+apps = [ "ruby", "rails" ]
+
+[containers.reference-materials]
+path = "registry.cmmint.net/cmm/reference-materials"
+apps = [ "ruby", "rails", "flipper", "redis" ]
+
+[containers.consumers-api]
+path = "registry.cmmint.net/cmm/consumers-api"
+apps = [ "ruby", "rails", "redis" ]
+
+[containers.appeals-api]
+path = "registry.cmmint.net/cmm/appeals-api"
+apps = [ "ruby", "rails", "nokogiri" ]
+
+[containers.portal-services]
+path = "registry.cmmint.net/cmm/portal-services"
+apps = [ "ruby", "rails", "flipper", "redis" ]
+
+[containers.signatures-api]
+path = "registry.cmmint.net/cmm/signatures-api"
+apps = [ "ruby", "rails" ]
+
+[containers.autobahn]
+path = "registry.cmmint.net/cmm/autobahn"
+apps = [ "ruby", "rails", "flipper", "redis", "nokogiri" ]
+
+[containers.sponsored-renewals]
+path = "registry.cmmint.net/cmm/sponsored-renewals"
+apps = [ "ruby", "rails", "redis" ]
+
+[containers.formpick]
+path = "registry.cmmint.net/cmm/formpick"
+apps = [ "ruby", "rails", "redis", "postgres" ]
