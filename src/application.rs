@@ -1,9 +1,17 @@
-use std::error::Error;
-
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use std::{error::Error, fmt};
 
 use crate::end_of_life;
+
+#[derive(Debug)]
+pub struct RegexCaptureError;
+impl Error for RegexCaptureError {}
+impl fmt::Display for RegexCaptureError {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		write!(f, "Could not capture version from input")
+	}
+}
 
 /// Configuration details for an application
 ///
@@ -40,14 +48,17 @@ impl Application {
 	/// #     Ok(())
 	/// # }
 	/// ```
-	pub fn query_version(&self, input: &str) -> Result<String, Box<dyn Error>> {
+	pub fn query_version(&self, input: &str) -> Result<String, RegexCaptureError> {
 		let results = self
 			.version_regex
 			.captures(input)
-			.and_then(|cap| cap.name("version").map(|version| version.as_str()))
-			.unwrap();
+			.and_then(|cap| {
+				cap.name("version")
+					.map(|version| String::from(version.as_str()))
+			})
+			.ok_or(RegexCaptureError);
 
-		Ok(results.to_string())
+		results
 	}
 }
 
