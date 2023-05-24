@@ -62,7 +62,7 @@ pub struct Cycle {
 	pub latest: String,
 	pub latest_release_date: String,
 	pub release_date: String,
-	pub lts: bool,
+	pub lts: EOLDate,
 }
 
 impl From<Cycle> for String {
