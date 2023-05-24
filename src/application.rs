@@ -48,17 +48,16 @@ impl Application {
 	/// #     Ok(())
 	/// # }
 	/// ```
-	pub fn query_version(&self, input: &str) -> Result<String, RegexCaptureError> {
-		let results = self
-			.version_regex
-			.captures(input)
-			.and_then(|cap| {
-				cap.name("version")
-					.map(|version| String::from(version.as_str()))
-			})
-			.ok_or(RegexCaptureError);
+	pub fn query_version(&self, input: &str) -> Result<String, Box<dyn Error>> {
+		let results = self.version_regex.captures(input).and_then(|cap| {
+			cap.name("version")
+				.map(|version| String::from(version.as_str()))
+		});
 
-		results
+		match results {
+			Some(x) => Ok(x),
+			_ => Err(Box::new(RegexCaptureError)),
+		}
 	}
 }
 

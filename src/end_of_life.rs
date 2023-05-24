@@ -1,10 +1,21 @@
 use chrono::NaiveDate;
 use regex::Regex;
-use reqwest::Error;
 use serde::{Deserialize, Serialize};
-use std::{convert::From, process};
+use std::{convert::From, error::Error, fmt};
 
 pub mod cache;
+
+#[derive(Debug)]
+pub struct EndOfLifeApiError;
+impl Error for EndOfLifeApiError {}
+impl fmt::Display for EndOfLifeApiError {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		write!(
+			f,
+			"Unable to find a matching product/version match from endoflife.date"
+		)
+	}
+}
 
 /// Configuation details for an endoflife.date cycle
 #[derive(Serialize, Deserialize, Debug)]
@@ -19,7 +30,7 @@ impl EolConfig {
 	///
 	/// First looks to see if this application/version combo has been previously
 	/// cached and avoids the network call if possible.
-	pub fn query(&self, input: &str) -> Result<Cycle, Error> {
+	pub fn query(&self, input: &str) -> Result<Cycle, Box<dyn Error>> {
 		let version = self.version_regex.find(input).unwrap().as_str();
 
 		if let Some(x) = cache::get_cycle(&self.product_name, version).unwrap() {
@@ -36,7 +47,12 @@ impl EolConfig {
 				eprintln!("-- hint: You may want to check the version number with endoflife.date.");
 				eprintln!("         If your url has extra digits at the end you may need to add");
 				eprintln!("         a version_regex to the application's eol config.");
-				process::exit(1);
+				eprintln!("-- also: Another reason this will fail is if you ask for a valid");
+				eprintln!("         Product but endoflife.api doesn't know about the version.");
+				eprintln!("         If you're sure the version pattern is correct, check");
+				eprintln!("         endoflife.date for supported version numbers.");
+
+				return Err(Box::new(EndOfLifeApiError));
 			}
 
 			let response = response.json::<Cycle>()?;

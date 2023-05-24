@@ -44,10 +44,10 @@ pub fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
 					match app.query_version(&output) {
 						Ok(version) => {
 							let eol_status: Option<String> = match &app.eol {
-								Some(x) => {
-									let status: String = x.query(&version).unwrap().into();
-									Some(status)
-								}
+								Some(x) => match x.query(&version) {
+									Ok(cycle) => Some(cycle.into()),
+									_ => None,
+								},
 								_ => None,
 							};
 
