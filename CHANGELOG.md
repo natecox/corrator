@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.1.7] - 2023-05-23
+## [0.1.8] - 2023-05-24
+
+### Bug Fixes
+
+- Endoflife.date failing on provided lts
 
 ### Documentation
 
