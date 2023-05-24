@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.9] - 2023-05-24
+
+### Bug Fixes
+
+- Better handle endoflife.date api "not found"
+
 ## [0.1.8] - 2023-05-24
 
 ### Bug Fixes
