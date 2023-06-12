@@ -38,7 +38,18 @@ pub fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
 				docker::run(&name, &container.path).expect("Unable to start docker container");
 
 				for app_name in container.apps {
-					let app = &config.applications[&app_name];
+					let app =
+						match config.applications.get(&app_name) {
+							Some(app) => app,
+							None => {
+								eprintln!(
+									"Config error for {} on {}: App is not defined",
+									&app_name, &name
+								);
+								eprintln!("-- hint: If you're sure you have a config for {}, look for typos.", &app_name);
+								continue;
+							}
+						};
 					let output = docker::execute(&name, &app.version_command);
 
 					match app.query_version(&output) {
