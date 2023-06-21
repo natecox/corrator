@@ -35,7 +35,7 @@ struct CachedCycle {
 pub fn get_cycle(product: &str, cycle: &str) -> Result<Option<Cycle>, bonsaidb::core::Error> {
 	let db = corrator_db()?;
 	let key = format!("{product}::{cycle}");
-	let entry = CachedCycle::get(&key, &db)?;
+	let entry = CachedCycle::get(key, &db)?;
 
 	match entry {
 		Some(x) => Ok(Some(x.contents.data)),
@@ -66,7 +66,7 @@ pub fn insert_cycle(
 		data,
 	};
 
-	db.collection::<CachedCycle>().insert(&key, &entry)?;
+	db.collection::<CachedCycle>().insert(key, &entry)?;
 	Ok(entry.data)
 }
 

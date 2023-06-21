@@ -16,16 +16,19 @@ pub type ApplicationMap = BTreeMap<String, application::Application>;
 pub struct Config {
 	containers: BTreeMap<String, container::Container>,
 	applications: BTreeMap<String, application::Application>,
+	clean_after_query: bool,
 }
 
 impl Config {
 	pub fn new(
 		containers: ContainerMap,
 		applications: ApplicationMap,
+		clean_after_query: bool,
 	) -> Result<Self, Box<dyn Error>> {
 		Ok(Self {
 			containers,
 			applications,
+			clean_after_query,
 		})
 	}
 }
@@ -38,9 +41,10 @@ pub fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
 			s.spawn(|| {
 				let (name, mut container) = entry;
 				let mut container_status = container::Status::new(name.clone());
+				let instance = docker::Docker::new(&name, &container.path);
 
 				container.apps.sort();
-				docker::run(&name, &container.path).expect("Unable to start docker container");
+				instance.run().expect("Unable to start docker container");
 
 				for app_name in container.apps {
 					let app =
@@ -55,7 +59,7 @@ pub fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
 								continue;
 							}
 						};
-					let output = docker::execute(&name, &app.version_command);
+					let output = instance.execute(&app.version_command);
 
 					match app.query_version(&output) {
 						Ok(version) => {
@@ -85,7 +89,9 @@ pub fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
 					}
 				}
 
-				docker::stop(&name).expect("Unable to clean up docker container");
+				instance
+					.stop(config.clean_after_query)
+					.expect("Unable to clean up docker container");
 
 				let mut data = data.lock().unwrap();
 				data.push(container_status);
