@@ -12,6 +12,16 @@ pub struct Container {
 	pub apps: Vec<String>,
 }
 
+// Added to simplify tests and documentation
+impl Default for Container {
+	fn default() -> Self {
+		Self {
+			path: String::from("path"),
+			apps: vec![String::from("bash")],
+		}
+	}
+}
+
 /// The currency status of a container
 ///
 /// Contains a list of [`application::Status`] providing currency details

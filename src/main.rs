@@ -3,7 +3,7 @@ extern crate xdg;
 use clap::Parser;
 use corrator::{ApplicationMap, Config, ContainerMap};
 use serde::{Deserialize, Serialize};
-use std::{env, fs, process};
+use std::{env, fs};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -44,12 +44,7 @@ fn main() {
 	let config_data: ConfigData =
 		toml::from_str(&config_data).expect("Could not parse config file");
 
-	let config = Config::new(config_data.containers, config_data.applications, args.clean)
-		.unwrap_or_else(|err| {
-			eprintln!("unable to parse config file: {err}");
-			process::exit(1);
-		});
-
+	let config = Config::new(config_data.containers, config_data.applications, args.clean);
 	if let Ok(data) = corrator::run(config) {
 		match args.format.as_str() {
 			"text" => output_as_text(data),

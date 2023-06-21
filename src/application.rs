@@ -61,6 +61,17 @@ impl Application {
 	}
 }
 
+// Added to simplify tests and documentation
+impl Default for Application {
+	fn default() -> Self {
+		Self {
+			version_regex: Regex::new(r"test: (?P<version>[0-9.]+)").unwrap(),
+			version_command: String::from(""),
+			eol: None,
+		}
+	}
+}
+
 /// The currency status of an application
 ///
 /// Contains the current version and an optional endoflife.date response

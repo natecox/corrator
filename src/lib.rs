@@ -12,6 +12,7 @@ pub mod end_of_life;
 pub type ContainerMap = BTreeMap<String, container::Container>;
 pub type ApplicationMap = BTreeMap<String, application::Application>;
 
+/// Runtime config required to run the app
 #[derive(Serialize, Deserialize)]
 pub struct Config {
 	containers: BTreeMap<String, container::Container>,
@@ -20,16 +21,35 @@ pub struct Config {
 }
 
 impl Config {
+	/// Create a new runtime configuration dataset
+	///
+	/// # Example
+	/// ```rust
+	/// # use std::error::Error;
+	/// # use corrator::{Config, ContainerMap, ApplicationMap};
+	/// # use corrator::application::Application;
+	/// # use corrator::container::Container;
+	/// # fn main() -> Result<(), Box<dyn Error>> {
+	/// #     let mut containers = ContainerMap::new();
+	/// #     containers.insert(String::from("ubuntu"), Container::default());
+	/// #     let mut applications = ApplicationMap::new();
+	/// #     applications.insert(String::from("bash"), Application::default());
+	/// #     let clean_after_query= false;
+	/// #     
+	/// Config::new(containers, applications, clean_after_query);
+	/// #    Ok(())
+	/// # }
+	/// ```
 	pub fn new(
 		containers: ContainerMap,
 		applications: ApplicationMap,
 		clean_after_query: bool,
-	) -> Result<Self, Box<dyn Error>> {
-		Ok(Self {
+	) -> Self {
+		Self {
 			containers,
 			applications,
 			clean_after_query,
-		})
+		}
 	}
 }
 
