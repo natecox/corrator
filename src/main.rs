@@ -1,8 +1,9 @@
 extern crate xdg;
 
 use clap::Parser;
-use corrator::Config;
-use std::{env, process};
+use corrator::{ApplicationMap, Config, ContainerMap};
+use serde::{Deserialize, Serialize};
+use std::{env, fs, process};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -14,6 +15,12 @@ struct Args {
 	format: String,
 }
 
+#[derive(Serialize, Deserialize)]
+struct ConfigData {
+	containers: ContainerMap,
+	applications: ApplicationMap,
+}
+
 fn default_config_path() -> String {
 	match xdg::BaseDirectories::with_prefix("corrator") {
 		Ok(x) => String::from(x.get_config_file("corrator.toml").to_str().unwrap()),
@@ -23,16 +30,20 @@ fn default_config_path() -> String {
 
 fn main() {
 	let args = Args::parse();
-	let file_path = match env::var("CORRATOR_CONFIG_PATH") {
+	let config_data = match env::var("CORRATOR_CONFIG_PATH") {
 		Ok(x) => x,
 		_ => args.config_path,
 	};
-	let file_path = shellexpand::tilde(&file_path).to_string();
+	let config_data = shellexpand::tilde(&config_data).to_string();
+	let config_data = fs::read_to_string(config_data).expect("Cound not read config file");
+	let config_data: ConfigData =
+		toml::from_str(&config_data).expect("Could not parse config file");
 
-	let config = Config::new(&file_path).unwrap_or_else(|err| {
-		eprintln!("unable to parse config file: {err}");
-		process::exit(1);
-	});
+	let config =
+		Config::new(config_data.containers, config_data.applications).unwrap_or_else(|err| {
+			eprintln!("unable to parse config file: {err}");
+			process::exit(1);
+		});
 
 	if let Ok(data) = corrator::run(config) {
 		match args.format.as_str() {

@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::error::Error;
-use std::fs;
 use std::sync::Mutex;
 use std::thread;
 
@@ -10,18 +9,24 @@ pub mod container;
 pub mod docker;
 pub mod end_of_life;
 
+pub type ContainerMap = BTreeMap<String, container::Container>;
+pub type ApplicationMap = BTreeMap<String, application::Application>;
+
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-	pub containers: BTreeMap<String, container::Container>,
-	pub applications: BTreeMap<String, application::Application>,
+	containers: BTreeMap<String, container::Container>,
+	applications: BTreeMap<String, application::Application>,
 }
 
 impl Config {
-	pub fn new(file_path: &String) -> Result<Self, Box<dyn Error>> {
-		let contents = fs::read_to_string(file_path)?;
-		let results: Self = toml::from_str(&contents)?;
-
-		Ok(results)
+	pub fn new(
+		containers: ContainerMap,
+		applications: ApplicationMap,
+	) -> Result<Self, Box<dyn Error>> {
+		Ok(Self {
+			containers,
+			applications,
+		})
 	}
 }
 
@@ -91,19 +96,4 @@ pub fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
 	let mut data = data.into_inner().unwrap();
 	data.sort_by_key(|x| x.name.clone());
 	Ok(data)
-}
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-
-	#[test]
-	fn gets_application_by_name() {
-		let config = Config::new(&String::from("corrator.toml")).unwrap();
-
-		assert_eq!(
-			config.applications.get("bash").unwrap().version_command,
-			"bash --version"
-		);
-	}
 }
