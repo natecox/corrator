@@ -1,0 +1,3 @@
+[ubuntu]
+path = "ubuntu"
+apps = [ "bash", "grep", "ubuntu"]

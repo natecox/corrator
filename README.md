@@ -48,29 +48,36 @@ For additional options, see `corrator --help`.
 
 ## Configuring Corrator
 
-The heart of corrator is a simple `toml` file with the following schema:
+The heart of corrator is a configuration directory featuring two files:
+
+### applications.toml
 
 ```toml
-[applications.bash]
-  # The actual command to run to get a version
-  version_command = "bash --version"
+[bash]
 
-  # Command's version format as a regex
-  #   "version" named group is mandatory
-  version_regex = '''GNU bash, version (?P<version>[0-9.]+)'''
+# The actual command to run to get a version
+version_command = "bash --version"
 
-  # Optional for endoflife.date support
-  [eol]
-  # The "product name" as it exists in endoflife.date
-  # yes, I'm aware bash isn't actually on endoflife.date
-  product_name = "bash"
+# Command's version format as a regex
+#   "version" named group is mandatory
+version_regex = '''GNU bash, version (?P<version>[0-9.]+)'''
 
-  # regex for which parts of version endofdate is looking for
-  #   e.g., Rails only wants version in X.X format
-  version_regex = '''.+'''
+# Optional for endoflife.date support
+[eol]
+# The "product name" as it exists in endoflife.date
+# yes, I'm aware bash isn't actually on endoflife.date
+product_name = "bash"
 
+# regex for which parts of version endofdate is looking for
+#   e.g., Rails only wants version in X.X format
+version_regex = '''.+'''
+```
 
-[containers.ubuntu]
+### containers.toml
+
+```toml
+[ubuntu]
+
 # The docker registry full path
 path = "ubuntu"
 
@@ -79,10 +86,9 @@ path = "ubuntu"
 apps = [ "bash" ]
 ```
 
-Corrator will look for this file in the following locations, in order:
+Corrator will look for these files in the following locations, in order:
 
 1.  Your system's user config location (see `corrator --help` to find this path)
-2.  Using the environment variable `CORRATOR_CONFIG_PATH`
-3.  Using the flag `-c path_to_toml`
+3.  Using the flag `-c path_to_directory`
 
-There is also an example file in this repository to get you started.
+There is also an `examples` in this repository to get you started.

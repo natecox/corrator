@@ -1,15 +1,15 @@
 extern crate xdg;
 
 use clap::Parser;
-use corrator::{ApplicationMap, Config, ContainerMap};
-use serde::{Deserialize, Serialize};
-use std::{env, fs};
+use corrator::Config;
+use serde::de::DeserializeOwned;
+use std::{fs, path::Path};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
 	#[arg(short, long, default_value_t = default_config_path())]
-	config_path: String,
+	config_directory: String,
 
 	#[arg(short, long, default_value = "text", value_parser = ["text", "json"])]
 	format: String,
@@ -19,32 +19,25 @@ struct Args {
 	clean: bool,
 }
 
-#[derive(Serialize, Deserialize)]
-struct ConfigData {
-	containers: ContainerMap,
-	applications: ApplicationMap,
-}
-
 fn default_config_path() -> String {
-	match xdg::BaseDirectories::with_prefix("corrator") {
-		Ok(x) => String::from(x.get_config_file("corrator.toml").to_str().unwrap()),
-		_ => String::from("~/.corrator"),
-	}
+	xdg::BaseDirectories::with_prefix("corrator")
+		.unwrap()
+		.get_config_home()
+		.to_str()
+		.unwrap()
+		.into()
 }
 
 fn main() {
 	let args = Args::parse();
 
-	let config_data = match env::var("CORRATOR_CONFIG_PATH") {
-		Ok(x) => x,
-		_ => args.config_path,
-	};
-	let config_data = shellexpand::tilde(&config_data).to_string();
-	let config_data = fs::read_to_string(config_data).expect("Cound not read config file");
-	let config_data: ConfigData =
-		toml::from_str(&config_data).expect("Could not parse config file");
+	let config = Path::new(&args.config_directory);
+	let config = Config::new(
+		parse_config_file(config, "containers.toml"),
+		parse_config_file(config, "applications.toml"),
+		args.clean,
+	);
 
-	let config = Config::new(config_data.containers, config_data.applications, args.clean);
 	if let Ok(data) = corrator::run(config) {
 		match args.format.as_str() {
 			"text" => output_as_text(data),
@@ -52,6 +45,15 @@ fn main() {
 			_ => println!("unknown format"),
 		}
 	}
+}
+
+fn parse_config_file<T: DeserializeOwned>(config_directory: &Path, file_name: &str) -> T {
+	let mut config_directory = config_directory.to_path_buf();
+	config_directory.push(file_name);
+
+	let data = fs::read_to_string(config_directory).expect("Could not read config file");
+
+	toml::from_str(&data).expect("Cound not read applications config file")
 }
 
 fn output_as_text(data: Vec<corrator::container::Status>) {
