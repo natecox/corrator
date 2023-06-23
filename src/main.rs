@@ -50,7 +50,7 @@ fn main() {
 		args.filter,
 	);
 
-	if let Ok(data) = corrator::run(config) {
+	if let Ok(data) = config.run() {
 		match args.format.as_str() {
 			"text" => output_as_text(data),
 			"json" => output_as_json(data),

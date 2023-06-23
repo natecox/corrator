@@ -69,6 +69,18 @@ impl Config {
 		}
 	}
 
+	/// Consume this Config to generate a result set.
+	///
+	/// # Example
+	///
+	/// ```no_run
+	/// # let config = corrator::Config::default();
+	/// config.run();
+	/// ```
+	pub fn run(self) -> Result<Vec<container::Status>, Box<dyn Error>> {
+		run(self)
+	}
+
 	fn filter(
 		containers: ContainerMap,
 		tags: &Option<Vec<String>>,
@@ -90,7 +102,18 @@ impl Config {
 	}
 }
 
-pub fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
+impl Default for Config {
+	fn default() -> Config {
+		Config {
+			containers: ContainerMap::new(),
+			applications: ApplicationMap::new(),
+			clean_after_query: false,
+			tags: None,
+		}
+	}
+}
+
+fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
 	let data = Mutex::new(vec![]);
 
 	thread::scope(|s| {
