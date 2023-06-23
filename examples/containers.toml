@@ -2,3 +2,7 @@
 path = "ubuntu"
 apps = [ "bash", "grep", "ubuntu"]
 tags = [ "testing", "tags" ]
+
+[alpine]
+path = "alpine"
+apps = [ "busybox" ]

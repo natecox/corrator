@@ -20,7 +20,7 @@ impl Docker<'_> {
 			.args(["--name", (self.name)])
 			.arg("-dit")
 			.arg(self.path)
-			.arg("bash")
+			.arg("sh")
 			.output()
 			.unwrap_or_else(|err| {
 				eprintln!("Unable to stand docker container up: {err}");

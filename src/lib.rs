@@ -13,6 +13,7 @@ pub mod end_of_life;
 pub type ContainerMap = BTreeMap<String, container::Container>;
 pub type ApplicationMap = BTreeMap<String, application::Application>;
 
+/// Function to use when filtering by tags
 #[derive(ValueEnum, Serialize, Deserialize, Clone, Debug, Default)]
 pub enum FilterFunction {
 	#[default]
@@ -20,22 +21,30 @@ pub enum FilterFunction {
 	All,
 }
 
+/// Various runtime options
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Options {
+	/// Remove the docker image after execution
 	clean_after_query: bool,
+	/// Container tags to filter by
 	tags: Option<Vec<String>>,
+	/// Filter function for tags, e.g., "any"
 	filter_function: FilterFunction,
+	/// Container names to filter by
+	names: Option<Vec<String>>,
 }
 
 impl Options {
 	pub fn new(
 		clean_after_query: bool,
 		tags: Option<Vec<String>>,
+		names: Option<Vec<String>>,
 		filter_function: FilterFunction,
 	) -> Self {
 		Self {
 			clean_after_query,
 			tags,
+			names,
 			filter_function,
 		}
 	}
@@ -62,7 +71,8 @@ impl Config {
 	/// Config::new(containers, applications, options);
 	/// ```
 	pub fn new(containers: ContainerMap, applications: ApplicationMap, options: Options) -> Self {
-		let containers = Self::filter(containers, &options.tags, &options.filter_function);
+		let containers = Self::filter_by_names(containers, &options.names);
+		let containers = Self::filter_by_tags(containers, &options.tags, &options.filter_function);
 
 		Self {
 			containers,
@@ -83,7 +93,7 @@ impl Config {
 		run(self)
 	}
 
-	fn filter(
+	fn filter_by_tags(
 		containers: ContainerMap,
 		tags: &Option<Vec<String>>,
 		filter_function: &FilterFunction,
@@ -98,6 +108,16 @@ impl Config {
 					},
 					None => false,
 				})
+				.collect(),
+			None => containers,
+		}
+	}
+
+	fn filter_by_names(containers: ContainerMap, names: &Option<Vec<String>>) -> ContainerMap {
+		match names {
+			Some(x) => containers
+				.into_iter()
+				.filter(|(name, _)| x.contains(name))
 				.collect(),
 			None => containers,
 		}
@@ -241,5 +261,22 @@ mod tests {
 		let config = Config::new(containers, applications, options);
 
 		assert_eq!(config.containers.len(), 1)
+	}
+
+	#[test]
+	fn filter_by_name() {
+		let containers = ContainerMap::from([
+			(String::from("test"), Container::default()),
+			(String::from("again"), Container::default()),
+		]);
+		let applications = ApplicationMap::new();
+		let options = Options {
+			names: Some(vec![String::from("test")]),
+			..Default::default()
+		};
+
+		let config = Config::new(containers, applications, options);
+
+		assert_eq!(config.containers.len(), 1);
 	}
 }

@@ -3,6 +3,11 @@ version_regex = '''GNU bash, version (?P<version>[0-9.]+)'''
 version_command = "bash --version"
 eol_api_supported = false
 
+[busybox]
+version_regex = '''BusyBox v(?P<version>[0-9.]+)'''
+version_command = "/bin/busybox --help"
+eol_api_supported = false
+
 [grep]
 version_regex = '''grep \(GNU grep\) (?P<version>[0-9.]+)'''
 version_command = "grep --version"

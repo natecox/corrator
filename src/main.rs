@@ -25,6 +25,21 @@ struct Args {
 	/// Filter function for tagging
 	#[arg(long, value_enum, default_value_t = corrator::FilterFunction::Any)]
 	filter: corrator::FilterFunction,
+
+	/// Filter containers by name; can be used multiple times
+	#[arg(short, long)]
+	name: Option<Vec<String>>,
+}
+
+impl From<&Args> for Options {
+	fn from(args: &Args) -> Self {
+		Self::new(
+			args.clean,
+			args.tag.clone(),
+			args.name.clone(),
+			args.filter.clone(),
+		)
+	}
 }
 
 fn default_config_path() -> String {
@@ -38,7 +53,7 @@ fn default_config_path() -> String {
 
 fn main() {
 	let args = Args::parse();
-	let options = Options::new(args.clean, args.tag, args.filter);
+	let options = Options::from(&args);
 
 	let config = Path::new(&args.config_directory);
 	let config = Config::new(
