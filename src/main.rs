@@ -39,8 +39,6 @@ fn default_config_path() -> String {
 fn main() {
 	let args = Args::parse();
 
-	dbg!(&args);
-
 	let config = Path::new(&args.config_directory);
 	let config = Config::new(
 		parse_config_file(config, "containers.toml"),

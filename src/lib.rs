@@ -20,7 +20,7 @@ pub enum FilterFunction {
 }
 
 /// Runtime config required to run the app
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct Config {
 	containers: BTreeMap<String, container::Container>,
 	applications: BTreeMap<String, application::Application>,
@@ -59,7 +59,6 @@ impl Config {
 		filter_function: FilterFunction,
 	) -> Self {
 		let containers = Self::filter(containers, &tags, &filter_function);
-		dbg!(&containers);
 
 		Self {
 			containers,
@@ -98,17 +97,6 @@ impl Config {
 				})
 				.collect(),
 			None => containers,
-		}
-	}
-}
-
-impl Default for Config {
-	fn default() -> Config {
-		Config {
-			containers: ContainerMap::new(),
-			applications: ApplicationMap::new(),
-			clean_after_query: false,
-			tags: None,
 		}
 	}
 }
