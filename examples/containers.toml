@@ -1,3 +1,4 @@
 [ubuntu]
 path = "ubuntu"
 apps = [ "bash", "grep", "ubuntu"]
+tags = [ "testing", "tags" ]

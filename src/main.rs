@@ -17,6 +17,14 @@ struct Args {
 	/// Enable flag to remove images after version queries
 	#[arg(long)]
 	clean: bool,
+
+	/// Filter containers by tag; can be used multiple times
+	#[arg(short, long)]
+	tags: Option<Vec<String>>,
+
+	/// Filter function for tagging
+	#[arg(long, value_enum, default_value_t = corrator::FilterFunction::Any)]
+	filter: corrator::FilterFunction,
 }
 
 fn default_config_path() -> String {
@@ -31,11 +39,15 @@ fn default_config_path() -> String {
 fn main() {
 	let args = Args::parse();
 
+	dbg!(&args);
+
 	let config = Path::new(&args.config_directory);
 	let config = Config::new(
 		parse_config_file(config, "containers.toml"),
 		parse_config_file(config, "applications.toml"),
 		args.clean,
+		args.tags,
+		args.filter,
 	);
 
 	if let Ok(data) = corrator::run(config) {

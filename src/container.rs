@@ -10,6 +10,9 @@ pub struct Container {
 
 	/// A list of the apps to query, by name
 	pub apps: Vec<String>,
+
+	/// A list of tags for this container
+	pub tags: Option<Vec<String>>,
 }
 
 // Added to simplify tests and documentation
@@ -18,6 +21,7 @@ impl Default for Container {
 		Self {
 			path: String::from("path"),
 			apps: vec![String::from("bash")],
+			tags: None,
 		}
 	}
 }

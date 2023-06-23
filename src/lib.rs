@@ -1,3 +1,4 @@
+use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::error::Error;
@@ -12,12 +13,19 @@ pub mod end_of_life;
 pub type ContainerMap = BTreeMap<String, container::Container>;
 pub type ApplicationMap = BTreeMap<String, application::Application>;
 
+#[derive(ValueEnum, Clone, Debug)]
+pub enum FilterFunction {
+	Any,
+	All,
+}
+
 /// Runtime config required to run the app
 #[derive(Serialize, Deserialize)]
 pub struct Config {
 	containers: BTreeMap<String, container::Container>,
 	applications: BTreeMap<String, application::Application>,
 	clean_after_query: bool,
+	tags: Option<Vec<String>>,
 }
 
 impl Config {
@@ -29,14 +37,17 @@ impl Config {
 	/// # use corrator::{Config, ContainerMap, ApplicationMap};
 	/// # use corrator::application::Application;
 	/// # use corrator::container::Container;
+	/// # use corrator::FilterFunction;
 	/// # fn main() -> Result<(), Box<dyn Error>> {
 	/// #     let mut containers = ContainerMap::new();
 	/// #     containers.insert(String::from("ubuntu"), Container::default());
 	/// #     let mut applications = ApplicationMap::new();
 	/// #     applications.insert(String::from("bash"), Application::default());
-	/// #     let clean_after_query= false;
+	/// #     let clean_after_query = false;
+	/// #     let tags = None;
+	/// #     let filter_function = FilterFunction::All;
 	/// #     
-	/// Config::new(containers, applications, clean_after_query);
+	/// Config::new(containers, applications, clean_after_query, tags, filter_function);
 	/// #    Ok(())
 	/// # }
 	/// ```
@@ -44,11 +55,37 @@ impl Config {
 		containers: ContainerMap,
 		applications: ApplicationMap,
 		clean_after_query: bool,
+		tags: Option<Vec<String>>,
+		filter_function: FilterFunction,
 	) -> Self {
+		let containers = Self::filter(containers, &tags, &filter_function);
+		dbg!(&containers);
+
 		Self {
 			containers,
 			applications,
 			clean_after_query,
+			tags,
+		}
+	}
+
+	fn filter(
+		containers: ContainerMap,
+		tags: &Option<Vec<String>>,
+		filter_function: &FilterFunction,
+	) -> ContainerMap {
+		match tags {
+			Some(x) => containers
+				.into_iter()
+				.filter(|(_, c)| match &c.tags {
+					Some(t) => match &filter_function {
+						FilterFunction::Any => t.iter().any(|y| x.contains(y)),
+						FilterFunction::All => x.iter().all(|y| t.contains(y)),
+					},
+					None => false,
+				})
+				.collect(),
+			None => containers,
 		}
 	}
 }
@@ -122,4 +159,75 @@ pub fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
 	let mut data = data.into_inner().unwrap();
 	data.sort_by_key(|x| x.name.clone());
 	Ok(data)
+}
+
+#[cfg(test)]
+mod tests {
+	use crate::{container::Container, ApplicationMap, Config, ContainerMap};
+
+	#[test]
+	fn filter_by_any() {
+		let mut containers = ContainerMap::new();
+		containers.insert(
+			String::from("test"),
+			Container {
+				tags: Some(vec![String::from("one"), String::from("two")]),
+				..Default::default()
+			},
+		);
+
+		containers.insert(
+			String::from("again"),
+			Container {
+				tags: None,
+				..Default::default()
+			},
+		);
+
+		let applications = ApplicationMap::new();
+		let tags = Some(vec![String::from("one")]);
+
+		let config = Config::new(
+			containers,
+			applications,
+			false,
+			tags,
+			crate::FilterFunction::Any,
+		);
+
+		assert_eq!(config.containers.len(), 1)
+	}
+
+	#[test]
+	fn filter_by_all() {
+		let mut containers = ContainerMap::new();
+		containers.insert(
+			String::from("test"),
+			Container {
+				tags: Some(vec![String::from("one"), String::from("two")]),
+				..Default::default()
+			},
+		);
+
+		containers.insert(
+			String::from("again"),
+			Container {
+				tags: Some(vec![String::from("one")]),
+				..Default::default()
+			},
+		);
+
+		let applications = ApplicationMap::new();
+		let tags = Some(vec![String::from("one"), String::from("two")]);
+
+		let config = Config::new(
+			containers,
+			applications,
+			false,
+			tags,
+			crate::FilterFunction::All,
+		);
+
+		assert_eq!(config.containers.len(), 1)
+	}
 }
