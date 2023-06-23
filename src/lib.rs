@@ -13,19 +13,40 @@ pub mod end_of_life;
 pub type ContainerMap = BTreeMap<String, container::Container>;
 pub type ApplicationMap = BTreeMap<String, application::Application>;
 
-#[derive(ValueEnum, Clone, Debug)]
+#[derive(ValueEnum, Serialize, Deserialize, Clone, Debug, Default)]
 pub enum FilterFunction {
+	#[default]
 	Any,
 	All,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+pub struct Options {
+	clean_after_query: bool,
+	tags: Option<Vec<String>>,
+	filter_function: FilterFunction,
+}
+
+impl Options {
+	pub fn new(
+		clean_after_query: bool,
+		tags: Option<Vec<String>>,
+		filter_function: FilterFunction,
+	) -> Self {
+		Self {
+			clean_after_query,
+			tags,
+			filter_function,
+		}
+	}
 }
 
 /// Runtime config required to run the app
 #[derive(Serialize, Deserialize, Default)]
 pub struct Config {
-	containers: BTreeMap<String, container::Container>,
-	applications: BTreeMap<String, application::Application>,
-	clean_after_query: bool,
-	tags: Option<Vec<String>>,
+	containers: ContainerMap,
+	applications: ApplicationMap,
+	options: Options,
 }
 
 impl Config {
@@ -34,37 +55,19 @@ impl Config {
 	/// # Example
 	/// ```rust
 	/// # use std::error::Error;
-	/// # use corrator::{Config, ContainerMap, ApplicationMap};
-	/// # use corrator::application::Application;
-	/// # use corrator::container::Container;
-	/// # use corrator::FilterFunction;
-	/// # fn main() -> Result<(), Box<dyn Error>> {
-	/// #     let mut containers = ContainerMap::new();
-	/// #     containers.insert(String::from("ubuntu"), Container::default());
-	/// #     let mut applications = ApplicationMap::new();
-	/// #     applications.insert(String::from("bash"), Application::default());
-	/// #     let clean_after_query = false;
-	/// #     let tags = None;
-	/// #     let filter_function = FilterFunction::All;
-	/// #     
-	/// Config::new(containers, applications, clean_after_query, tags, filter_function);
-	/// #    Ok(())
-	/// # }
+	/// # use corrator::{Config, ContainerMap, ApplicationMap, Options};
+	/// # let containers = ContainerMap::new();
+	/// # let applications = ApplicationMap::new();
+	/// # let options = Options::default();
+	/// Config::new(containers, applications, options);
 	/// ```
-	pub fn new(
-		containers: ContainerMap,
-		applications: ApplicationMap,
-		clean_after_query: bool,
-		tags: Option<Vec<String>>,
-		filter_function: FilterFunction,
-	) -> Self {
-		let containers = Self::filter(containers, &tags, &filter_function);
+	pub fn new(containers: ContainerMap, applications: ApplicationMap, options: Options) -> Self {
+		let containers = Self::filter(containers, &options.tags, &options.filter_function);
 
 		Self {
 			containers,
 			applications,
-			clean_after_query,
-			tags,
+			options,
 		}
 	}
 
@@ -158,7 +161,7 @@ fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
 				}
 
 				instance
-					.stop(config.clean_after_query)
+					.stop(config.options.clean_after_query)
 					.expect("Unable to clean up docker container");
 
 				let mut data = data.lock().unwrap();
@@ -174,70 +177,68 @@ fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
 
 #[cfg(test)]
 mod tests {
-	use crate::{container::Container, ApplicationMap, Config, ContainerMap};
+	use crate::{
+		container::Container, ApplicationMap, Config, ContainerMap, FilterFunction, Options,
+	};
 
 	#[test]
 	fn filter_by_any() {
-		let mut containers = ContainerMap::new();
-		containers.insert(
-			String::from("test"),
-			Container {
-				tags: Some(vec![String::from("one"), String::from("two")]),
-				..Default::default()
-			},
-		);
-
-		containers.insert(
-			String::from("again"),
-			Container {
-				tags: None,
-				..Default::default()
-			},
-		);
+		let containers = ContainerMap::from([
+			(
+				String::from("test"),
+				Container {
+					tags: Some(vec![String::from("one"), String::from("two")]),
+					..Default::default()
+				},
+			),
+			(
+				String::from("again"),
+				Container {
+					tags: None,
+					..Default::default()
+				},
+			),
+		]);
 
 		let applications = ApplicationMap::new();
-		let tags = Some(vec![String::from("one")]);
+		let options = Options {
+			tags: Some(vec![String::from("one")]),
+			filter_function: FilterFunction::Any,
+			..Default::default()
+		};
 
-		let config = Config::new(
-			containers,
-			applications,
-			false,
-			tags,
-			crate::FilterFunction::Any,
-		);
+		let config = Config::new(containers, applications, options);
 
 		assert_eq!(config.containers.len(), 1)
 	}
 
 	#[test]
 	fn filter_by_all() {
-		let mut containers = ContainerMap::new();
-		containers.insert(
-			String::from("test"),
-			Container {
-				tags: Some(vec![String::from("one"), String::from("two")]),
-				..Default::default()
-			},
-		);
-
-		containers.insert(
-			String::from("again"),
-			Container {
-				tags: Some(vec![String::from("one")]),
-				..Default::default()
-			},
-		);
+		let containers = ContainerMap::from([
+			(
+				String::from("test"),
+				Container {
+					tags: Some(vec![String::from("one"), String::from("two")]),
+					..Default::default()
+				},
+			),
+			(
+				String::from("again"),
+				Container {
+					tags: Some(vec![String::from("one")]),
+					..Default::default()
+				},
+			),
+		]);
 
 		let applications = ApplicationMap::new();
-		let tags = Some(vec![String::from("one"), String::from("two")]);
+		let options = Options {
+			tags: Some(vec![String::from("one"), String::from("two")]),
+			filter_function: FilterFunction::All,
+			..Default::default()
+		};
 
-		let config = Config::new(
-			containers,
-			applications,
-			false,
-			tags,
-			crate::FilterFunction::All,
-		);
+		let config = Config::new(containers, applications, options);
 
 		assert_eq!(config.containers.len(), 1)
 	}

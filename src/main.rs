@@ -1,7 +1,7 @@
 extern crate xdg;
 
 use clap::Parser;
-use corrator::Config;
+use corrator::{Config, Options};
 use serde::de::DeserializeOwned;
 use std::{fs, path::Path};
 
@@ -20,7 +20,7 @@ struct Args {
 
 	/// Filter containers by tag; can be used multiple times
 	#[arg(short, long)]
-	tags: Option<Vec<String>>,
+	tag: Option<Vec<String>>,
 
 	/// Filter function for tagging
 	#[arg(long, value_enum, default_value_t = corrator::FilterFunction::Any)]
@@ -38,14 +38,13 @@ fn default_config_path() -> String {
 
 fn main() {
 	let args = Args::parse();
+	let options = Options::new(args.clean, args.tag, args.filter);
 
 	let config = Path::new(&args.config_directory);
 	let config = Config::new(
 		parse_config_file(config, "containers.toml"),
 		parse_config_file(config, "applications.toml"),
-		args.clean,
-		args.tags,
-		args.filter,
+		options,
 	);
 
 	if let Ok(data) = config.run() {
