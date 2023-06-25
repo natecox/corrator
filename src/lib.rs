@@ -1,9 +1,8 @@
 use clap::ValueEnum;
+use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::error::Error;
-use std::sync::Mutex;
-use std::thread;
 
 pub mod application;
 pub mod container;
@@ -89,8 +88,12 @@ impl Config {
 	/// # let config = corrator::Config::default();
 	/// config.run();
 	/// ```
-	pub fn run(self) -> Result<Vec<container::Status>, Box<dyn Error>> {
-		run(self)
+	pub fn run(&self) -> Result<Vec<container::Status>, Box<dyn Error>> {
+		Ok(self
+			.containers
+			.par_iter()
+			.map(|(name, container)| self.container_status(name, container))
+			.collect())
 	}
 
 	fn filter_by_tags(
@@ -122,77 +125,71 @@ impl Config {
 			None => containers,
 		}
 	}
-}
 
-fn run(config: Config) -> Result<Vec<container::Status>, Box<dyn Error>> {
-	let data = Mutex::new(vec![]);
+	fn container_status(
+		&self,
+		name: &String,
+		container: &container::Container,
+	) -> container::Status {
+		let mut container_status = container::Status::new(name.clone());
+		let mut apps = container.apps.clone();
+		apps.sort();
 
-	thread::scope(|s| {
-		for entry in config.containers {
-			s.spawn(|| {
-				let (name, mut container) = entry;
-				let mut container_status = container::Status::new(name.clone());
-				let instance = docker::Docker::new(&name, &container.path);
+		let instance = docker::Docker::new(name, &container.path);
 
-				container.apps.sort();
-				instance.run().expect("Unable to start docker container");
+		instance.run().expect("Unable to start docker container");
 
-				for app_name in container.apps {
-					let app =
-						match config.applications.get(&app_name) {
-							Some(app) => app,
-							None => {
-								eprintln!(
-									"Config error for {} on {}: App is not defined",
-									&app_name, &name
-								);
-								eprintln!("-- hint: If you're sure you have a config for {}, look for typos.", &app_name);
-								continue;
-							}
-						};
-					let output = instance.execute(&app.version_command);
-
-					match app.query_version(&output) {
-						Ok(version) => {
-							let eol_status: Option<String> = match &app.eol {
-								Some(x) => match x.query(&version) {
-									Ok(cycle) => Some(cycle.into()),
-									_ => None,
-								},
-								_ => None,
-							};
-
-							container_status.apps.push(application::Status {
-								name: app_name,
-								version,
-								eol_status,
-							});
-						}
-						_ => {
-							eprintln!("Error querying app version for {} on {}", &app_name, &name);
-							eprintln!("-- hint: Your version command was: {}", app.version_command);
-							eprintln!(
-								"         Your regex query was: {}",
-								app.version_regex.as_str()
-							);
-							eprintln!("         Your regex input was: {output}");
-						}
-					}
+		for app_name in apps {
+			let app = match self.applications.get(&app_name) {
+				Some(app) => app,
+				None => {
+					eprintln!(
+						"Config error for {} on {}: App is not defined",
+						&app_name, &name
+					);
+					eprintln!(
+						"-- hint: If you're sure you have a config for {}, look for typos.",
+						&app_name
+					);
+					continue;
 				}
+			};
+			let output = instance.execute(&app.version_command);
 
-				instance
-					.stop(config.options.clean_after_query)
-					.expect("Unable to clean up docker container");
+			match app.query_version(&output) {
+				Ok(version) => {
+					let eol_status: Option<String> = match &app.eol {
+						Some(x) => match x.query(&version) {
+							Ok(cycle) => Some(cycle.into()),
+							_ => None,
+						},
+						_ => None,
+					};
 
-				let mut data = data.lock().unwrap();
-				data.push(container_status);
-			});
+					container_status.apps.push(application::Status {
+						name: app_name,
+						version,
+						eol_status,
+					});
+				}
+				_ => {
+					eprintln!("Error querying app version for {} on {}", &app_name, &name);
+					eprintln!("-- hint: Your version command was: {}", app.version_command);
+					eprintln!(
+						"         Your regex query was: {}",
+						app.version_regex.as_str()
+					);
+					eprintln!("         Your regex input was: {output}");
+				}
+			}
 		}
-	});
 
-	let mut data = data.into_inner().unwrap();
-	data.sort_by_key(|x| x.name.clone());
-	Ok(data)
+		instance
+			.stop(self.options.clean_after_query)
+			.expect("Unable to clean up docker container");
+
+		container_status
+	}
 }
 
 #[cfg(test)]
