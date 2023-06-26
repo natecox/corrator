@@ -84,6 +84,12 @@ path = "ubuntu"
 # An array of applications to be queried
 #   These must be defined in this file
 apps = [ "bash" ]
+
+# An array of tags
+#   These can be anything sting you want
+#   You can filter them with `--tag` and `--filter`
+#   See `corrator --help` for more detail
+tags = [ "mytag1", "mytag2" ]
 ```
 
 Corrator will look for these files in the following locations, in order:
