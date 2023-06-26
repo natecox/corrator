@@ -1,7 +1,6 @@
-extern crate xdg;
-
 use clap::Parser;
 use corrator::{Config, Options};
+use directories::ProjectDirs;
 use serde::de::DeserializeOwned;
 use std::{fs, path::Path};
 
@@ -43,9 +42,9 @@ impl From<&Args> for Options {
 }
 
 fn default_config_path() -> String {
-	xdg::BaseDirectories::with_prefix("corrator")
-		.unwrap()
-		.get_config_home()
+	ProjectDirs::from("rs", "", "corrator")
+		.expect("could not get project directory")
+		.config_dir()
 		.to_str()
 		.unwrap()
 		.into()
@@ -72,8 +71,7 @@ fn main() {
 }
 
 fn parse_config_file<T: DeserializeOwned>(config_directory: &Path, file_name: &str) -> T {
-	let mut config_directory = config_directory.to_path_buf();
-	config_directory.push(file_name);
+	let config_directory = config_directory.join(file_name);
 
 	let data = fs::read_to_string(config_directory).expect("Could not read config file");
 

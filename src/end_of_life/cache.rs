@@ -71,8 +71,10 @@ pub fn insert_cycle(
 }
 
 fn corrator_db() -> Result<Database, bonsaidb::core::Error> {
-	let dirs = xdg::BaseDirectories::with_prefix("corrator").unwrap();
-	let db_path = dirs.get_data_file("corrator.bonsaidb");
+	let db_path = directories::ProjectDirs::from("rs", "", "corrator")
+		.expect("could not find project directory")
+		.data_dir()
+		.join("corrator.bonsaidb");
 
 	Ok(
 		Database::open::<CachedCycle>(StorageConfiguration::new(db_path))
