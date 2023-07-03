@@ -3,7 +3,7 @@ name = "corrator"
 version = "1.0.0"
 edition = "2021"
 description = "A tool to verify the versions of apps used inside docker containers."
-license-file = "LICENSE"
+license = "MIT OR Apache-2.0"
 homepage = "https://github.com/natecox/corrator"
 repository = "https://github.com/natecox/corrator"
 
