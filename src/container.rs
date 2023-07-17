@@ -32,7 +32,7 @@ impl Default for Container {
 /// for each defined application in a container.
 ///
 /// [`application::Status`]: ../application/Struct.status.html
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Status {
 	pub name: String,
 	pub apps: Vec<crate::application::Status>,
@@ -77,7 +77,7 @@ impl From<Status> for String {
 
 	fn from(value: Status) -> Self {
 		let mut output = vec![];
-		output.push(format!("\n---Container: {:-<35}", value.name));
+		output.push(format!("---Container: {:-<35}", value.name));
 
 		for app in value.apps.iter() {
 			let eol_status: String = match &app.eol_status {

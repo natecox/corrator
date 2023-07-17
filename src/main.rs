@@ -13,6 +13,12 @@ struct Args {
 	#[arg(short, long, default_value = "text", value_parser = ["text", "json"])]
 	format: String,
 
+	/// Writes output to a file at this given path if provided
+	///
+	/// Will write to stdout if this option is not used
+	#[arg(short, long)]
+	output: Option<String>,
+
 	/// Enable flag to remove images after version queries
 	#[arg(long)]
 	clean: bool,
@@ -63,9 +69,15 @@ fn main() {
 
 	if let Ok(data) = config.run() {
 		match args.format.as_str() {
-			"text" => output_as_text(data),
-			"json" => output_as_json(data),
-			_ => println!("unknown format"),
+			"text" => {
+				let data: String = data
+					.into_iter()
+					.map(|x| format!("{}\n\n", String::from(x)))
+					.collect();
+				write_results(data, args);
+			}
+			"json" => write_results(serde_json::to_string(&data).unwrap(), args),
+			_ => eprintln!("unknown format"),
 		}
 	}
 }
@@ -78,12 +90,11 @@ fn parse_config_file<T: DeserializeOwned>(config_directory: &Path, file_name: &s
 	toml::from_str(&data).expect("Cound not read applications config file")
 }
 
-fn output_as_text(data: Vec<corrator::container::Status>) {
-	for x in data {
-		println!("{}", String::from(x));
-	}
-}
+fn write_results(output: String, args: Args) {
+	let output = output.trim();
 
-fn output_as_json(data: Vec<corrator::container::Status>) {
-	println!("{}", serde_json::to_string(&data).unwrap());
+	match args.output {
+		Some(x) => fs::write(x, output).expect("Coult not write to file"),
+		None => println!("{output}"),
+	}
 }
