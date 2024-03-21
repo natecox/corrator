@@ -3,7 +3,7 @@
 [![crates.io](https://img.shields.io/crates/v/corrator?label=latest)](https://crates.io/crates/corrator) 
 [![Documentation](https://docs.rs/corrator/badge.svg?version=latest)](https://docs.rs/corrator/latest) 
 ![MIT or Apache 2.0 licensed](https://img.shields.io/crates/l/corrator.svg) 
-[![Dependency Status](https://deps.rs/crate/corrator/latest/status.svg)](https://deps.rs/crate/corrator/latest)
+[![Dependency Status](https://deps.rs/crate/corrator/latest/status.svg)](https://deps.rs/crate/corrator/)
 ![downloads](https://img.shields.io/crates/d/corrator.svg) 
 
 Keep tabs on the corrosion in your docker containers.
