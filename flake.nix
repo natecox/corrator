@@ -16,7 +16,8 @@
       let pkgs = import nixpkgs { inherit overlays system; };
       in {
         devShells.default = pkgs.mkShell {
-          packages = (with pkgs; [ rustToolchain rust-analyzer just taplo ])
+          packages =
+            (with pkgs; [ rustToolchain rust-analyzer just taplo openssl ])
             ++ pkgs.lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
               libclang
               libiconv
