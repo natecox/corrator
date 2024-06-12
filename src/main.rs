@@ -35,7 +35,7 @@ struct Args {
 	#[arg(short, long)]
 	name: Option<Vec<String>>,
 
-	/// Do not clear the EOL cache after querying apps
+	/// Do not clear the EOL cache before querying apps
 	#[arg(short, long)]
 	keep_eol_cache: bool,
 }
