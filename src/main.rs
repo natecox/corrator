@@ -2,7 +2,7 @@ use clap::Parser;
 use corrator::{Config, Options};
 use directories::ProjectDirs;
 use serde::de::DeserializeOwned;
-use std::{fs, path::Path};
+use std::{fmt::Write, fs, path::Path};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -78,10 +78,10 @@ fn main() {
 	if let Ok(data) = config.run() {
 		match args.format.as_str() {
 			"text" => {
-				let data: String = data
-					.into_iter()
-					.map(|x| format!("{}\n\n", String::from(x)))
-					.collect();
+				let data: String = data.into_iter().fold(String::new(), |mut output, b| {
+					write!(output, "{}\n\n", String::from(b)).expect("Unable to build output text");
+					output
+				});
 				write_results(data, args);
 			}
 			"json" => write_results(serde_json::to_string(&data).unwrap(), args),
