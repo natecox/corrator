@@ -1,19 +1,16 @@
 [bash]
 version_regex = '''GNU bash, version (?P<version>[0-9.]+)'''
 version_command = "bash --version"
-eol_api_supported = false
 
 [busybox]
 version_regex = '''BusyBox v(?P<version>[0-9.]+)'''
 version_command = "/bin/busybox --help"
-eol_api_supported = false
 
 [grep]
 version_regex = '''grep \(GNU grep\) (?P<version>[0-9.]+)'''
 version_command = "grep --version"
-eol_api_supported = false
 
 [ubuntu]
 version_regex = '''PRETTY_NAME="Ubuntu (?P<version>[0-9.]{5}).*"'''
 version_command = "cat /etc/os-release"
-eol_api_supported = true
+eol = { product_name = "ubuntu", version_regex = '''^[0-9]{2}\.[0-9]{2}''' }

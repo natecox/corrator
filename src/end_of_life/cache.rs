@@ -1,3 +1,7 @@
+use std::path::PathBuf;
+
+use bonsaidb::core::Error;
+
 use crate::end_of_life::Cycle;
 use bonsaidb::{
 	core::{
@@ -53,11 +57,7 @@ pub fn get_cycle(product: &str, cycle: &str) -> Result<Option<Cycle>, bonsaidb::
 /// let cycle: Cycle = Default::default();
 /// cache::insert_cycle("ubuntu", "22.10", cycle);
 /// ```
-pub fn insert_cycle(
-	product: &str,
-	cycle: &str,
-	data: Cycle,
-) -> Result<Cycle, bonsaidb::core::Error> {
+pub fn insert_cycle(product: &str, cycle: &str, data: Cycle) -> Result<Cycle, Error> {
 	let key = format!("{product}::{cycle}");
 	let db = corrator_db()?;
 	let entry = CachedCycle {
@@ -70,11 +70,29 @@ pub fn insert_cycle(
 	Ok(entry.data)
 }
 
-fn corrator_db() -> Result<Database, bonsaidb::core::Error> {
-	let db_path = directories::ProjectDirs::from("rs", "", "corrator")
+/// Clears the cache entirely
+///
+/// # Examples
+/// ```no_run
+/// use corrator::end_of_life::cache;
+///
+/// cache::clear();
+/// ```
+pub fn clear() -> Result<(), Error> {
+	drop(std::fs::remove_dir_all(corrator_db_path()));
+
+	Ok(())
+}
+
+fn corrator_db_path() -> PathBuf {
+	directories::ProjectDirs::from("rs", "", "corrator")
 		.expect("could not find project directory")
 		.data_dir()
-		.join("corrator.bonsaidb");
+		.join("corrator.bonsaidb")
+}
+
+fn corrator_db() -> Result<Database, Error> {
+	let db_path = corrator_db_path();
 
 	Ok(
 		Database::open::<CachedCycle>(StorageConfiguration::new(db_path))

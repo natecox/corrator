@@ -34,6 +34,10 @@ struct Args {
 	/// Filter containers by name; can be used multiple times
 	#[arg(short, long)]
 	name: Option<Vec<String>>,
+
+	/// Do not clear the EOL cache after querying apps
+	#[arg(short, long)]
+	keep_eol_cache: bool,
 }
 
 impl From<&Args> for Options {
@@ -66,6 +70,10 @@ fn main() {
 		parse_config_file(config, "applications.toml"),
 		options,
 	);
+
+	if !args.keep_eol_cache {
+		corrator::end_of_life::cache::clear().expect("Unable to clear EOL cache");
+	}
 
 	if let Ok(data) = config.run() {
 		match args.format.as_str() {
