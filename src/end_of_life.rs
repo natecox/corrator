@@ -32,8 +32,9 @@ impl EolConfig {
 	/// cached and avoids the network call if possible.
 	pub fn query(&self, input: &str) -> Result<Cycle, Box<dyn Error>> {
 		let version = self.version_regex.find(input).unwrap().as_str();
+		let db = cache::eol_cache_db()?;
 
-		if let Some(x) = cache::get_cycle(&self.product_name, version).unwrap() {
+		if let Some(x) = cache::get_cycle(&db, &self.product_name, version).unwrap() {
 			Ok(x)
 		} else {
 			let request_url = format!(
@@ -60,8 +61,10 @@ impl EolConfig {
 			// Don't cache responses where an end of life date hasn't yet been set
 			match response.eol {
 				EOLDate::String(_) => {
-					Ok(cache::insert_cycle(&self.product_name, version, response)
-						.expect("failed to insert cached cycle"))
+					Ok(
+						cache::insert_cycle(&db, &self.product_name, version, response)
+							.expect("failed to insert cached cycle"),
+					)
 				}
 				EOLDate::Boolean(_) => Ok(response),
 			}

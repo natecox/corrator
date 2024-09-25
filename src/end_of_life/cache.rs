@@ -34,12 +34,16 @@ struct CachedCycle {
 /// ```no_run
 /// use corrator::end_of_life::cache;
 ///
-/// cache::get_cycle("ubuntu", "22.10");
+/// let db = cache::eol_cache_db().unwrap();
+/// cache::get_cycle(&db, "ubuntu", "22.10");
 /// ```
-pub fn get_cycle(product: &str, cycle: &str) -> Result<Option<Cycle>, bonsaidb::core::Error> {
-	let db = corrator_db()?;
+pub fn get_cycle(
+	db: &Database,
+	product: &str,
+	cycle: &str,
+) -> Result<Option<Cycle>, bonsaidb::core::Error> {
 	let key = format!("{product}::{cycle}");
-	let entry = CachedCycle::get(&key, &db)?;
+	let entry = CachedCycle::get(&key, db)?;
 
 	match entry {
 		Some(x) => Ok(Some(x.contents.data)),
@@ -54,19 +58,27 @@ pub fn get_cycle(product: &str, cycle: &str) -> Result<Option<Cycle>, bonsaidb::
 /// ```no_run
 /// use corrator::end_of_life::{cache, Cycle};
 ///
+/// let db = cache::eol_cache_db().unwrap();
 /// let cycle: Cycle = Default::default();
-/// cache::insert_cycle("ubuntu", "22.10", cycle);
+/// cache::insert_cycle(&db, "ubuntu", "22.10", cycle);
 /// ```
-pub fn insert_cycle(product: &str, cycle: &str, data: Cycle) -> Result<Cycle, Error> {
+pub fn insert_cycle(
+	db: &Database,
+	product: &str,
+	cycle: &str,
+	data: Cycle,
+) -> Result<Cycle, Error> {
 	let key = format!("{product}::{cycle}");
-	let db = corrator_db()?;
 	let entry = CachedCycle {
 		product: String::from(product),
 		cycle: String::from(cycle),
 		data,
 	};
 
-	db.collection::<CachedCycle>().insert(&key, &entry)?;
+	if let Ok(None) = get_cycle(db, product, cycle) {
+		db.collection::<CachedCycle>().insert(&key, &entry)?;
+	}
+
 	Ok(entry.data)
 }
 
@@ -79,23 +91,35 @@ pub fn insert_cycle(product: &str, cycle: &str, data: Cycle) -> Result<Cycle, Er
 /// cache::clear();
 /// ```
 pub fn clear() -> Result<(), Error> {
-	drop(std::fs::remove_dir_all(corrator_db_path()));
+	drop(std::fs::remove_dir_all(eol_cache_db_path()));
 
 	Ok(())
 }
 
-fn corrator_db_path() -> PathBuf {
-	directories::ProjectDirs::from("rs", "", "corrator")
-		.expect("could not find project directory")
-		.data_dir()
-		.join("corrator.bonsaidb")
-}
-
-fn corrator_db() -> Result<Database, Error> {
-	let db_path = corrator_db_path();
+/// Returns a reusable bonsaidb instance
+///
+/// This was made a public function to reduce the number of times a DB
+/// connection was created, when bonsaidb started producting intermittent
+/// connection refusals.
+///
+/// # Examples
+/// ```no_run
+/// use corrator::end_of_life::cache;
+///
+/// let db = cache::eol_cache_db().unwrap();
+/// ```
+pub fn eol_cache_db() -> Result<Database, Error> {
+	let db_path = eol_cache_db_path();
 
 	Ok(
 		Database::open::<CachedCycle>(StorageConfiguration::new(db_path))
 			.expect("Couldn't connect to DB"),
 	)
+}
+
+fn eol_cache_db_path() -> PathBuf {
+	directories::ProjectDirs::from("rs", "", "corrator")
+		.expect("could not find project directory")
+		.data_dir()
+		.join("corrator.bonsaidb")
 }
