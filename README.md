@@ -5,7 +5,6 @@
 ![MIT or Apache 2.0 licensed](https://img.shields.io/crates/l/corrator.svg) 
 [![Dependency Status](https://deps.rs/crate/corrator/latest/status.svg)](https://deps.rs/crate/corrator/)
 ![downloads](https://img.shields.io/crates/d/corrator.svg) 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1N7Z9IBX)
 
 Keep tabs on the corrosion in your docker containers.
 
