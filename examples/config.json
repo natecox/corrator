@@ -1,0 +1,44 @@
+{
+  "applications": {
+    "bash": {
+      "version_regex": "GNU bash, version (?P<version>[0-9.]+)",
+      "version_command": "bash --version"
+    },
+    "busybox": {
+      "version_regex": "BusyBox v(?P<version>[0-9.]+)",
+      "version_command": "/bin/busybox --help"
+    },
+    "grep": {
+      "version_regex": "grep \\(GNU grep\\) (?P<version>[0-9.]+)",
+      "version_command": "grep --version"
+    },
+    "ubuntu": {
+      "version_regex": "PRETTY_NAME=\"Ubuntu (?P<version>[0-9.]{5}).*\"",
+      "version_command": "cat /etc/os-release",
+      "eol": {
+        "product_name": "ubuntu",
+        "version_regex": "^[0-9]{2}\\.[0-9]{2}"
+      }
+    }
+  },
+  "containers": {
+    "ubuntu": {
+      "path": "ubuntu",
+      "apps": [
+        "bash",
+        "grep",
+        "ubuntu"
+      ],
+      "tags": [
+        "testing",
+        "tags"
+      ]
+    },
+    "alpine": {
+      "path": "alpine",
+      "apps": [
+        "busybox"
+      ]
+    }
+  }
+}

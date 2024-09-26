@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://corrator.rs/config.schema.json",
+  "title": "Corrator Config",
+  "description": "A reference config for applications and containers",
+  "type": "object",
+  "properties": {
+    "containers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "apps": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": false,
+        "required": [ "path", "apps" ]
+      }
+    },
+    "applications": {
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "version_regex": { "type": "string" },
+          "version_command": { "type": "string" },
+          "eol": {
+            "type": "object",
+            "properties": {
+              "product_name": { "type": "string" },
+              "version_regex": { "type": "string" }
+            },
+            "additionalProperties": false,
+            "required": ["product_name", "version_regex" ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [ "version_regex", "version_command" ]
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [ "containers", "applications" ]
+}
+

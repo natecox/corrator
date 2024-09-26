@@ -48,6 +48,13 @@ corrator
 
 For additional options, see `corrator --help`.
 
+### Config via URL
+
+Alternatively, if you want to consume JSON from a URL (e.g., you generate the config on the fly) you 
+can use the `-u` flag to provide a URL. 
+
+You can find the reference schema [here](src/config.schema.json).
+
 ## Configuring Corrator
 
 The heart of corrator is a configuration directory featuring two files:
