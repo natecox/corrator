@@ -11,12 +11,24 @@
   # env.GREET = "devenv";
 
   # https://devenv.sh/packages/
-  packages = with pkgs; [
-    rust-analyzer
-    just
-    taplo
-    openssl
-  ];
+  packages =
+    with pkgs;
+    [
+      rust-analyzer
+      just
+      taplo
+      openssl
+    ]
+    ++ pkgs.lib.optionals pkgs.stdenv.isDarwin (
+      with pkgs;
+      [
+        libclang
+        libiconv
+        darwin.apple_sdk.frameworks.Security
+        darwin.apple_sdk.frameworks.CoreServices
+        darwin.apple_sdk.frameworks.Carbon
+      ]
+    );
 
   # https://devenv.sh/languages/
   languages.rust.enable = true;
